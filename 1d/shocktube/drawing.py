@@ -8,6 +8,7 @@ vx = read.read_1d('vx.dac')
 rho = read.read_1d('rho.dac')
 p = read.read_1d('p.dac')
 
+
 # for graphing
 fig = plt.figure(figsize=(5, 5))
 ax = fig.add_subplot(111)
@@ -18,10 +19,10 @@ plt.tick_params(labelsize=10)
 
 
 
-plt.plot(x, vx[3],label='vx')
-plt.plot(x, p[3],label='p')
-plt.plot(x,rho[3],label='rho')
-plt.title(str(t[3])[:4])
+plt.plot(x, vx[5],label='vx')
+plt.plot(x, p[5],label='p')
+plt.plot(x,rho[5],label='rho')
+plt.title(str(t[5])[:4])
 
 plt.legend()
 plt.show()

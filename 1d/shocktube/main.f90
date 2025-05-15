@@ -37,14 +37,15 @@ program main
   !----------------------------------------------------------------------|
   !   initialize
 
-  x(:)=0.d0
-  u(:)=0.d0; um(:)=0.d0
-  f(:)=0.d0; f0(:)=0.d0
-  rho(:)=0.d0; rhom(:)=0.d0; rhon(:)=0.d0
-  vx(:)=0.d0; vxm(:)=0.d0; vxn(:)=0.d0
-  p(:) = 0.d0; pm(:) = 0.d0; pn(:) = 0.d0
-  eps(:)=0.d0; epsm(:) = 0.d0; epsn(:) = 0.d0
-  kappa(:)=0.d0
+  call init1d(x)
+  call init1d(u); call init1d(um)
+  call init1d(f); call init1d(f0)
+  call init1d(rho); call init1d(rhom); call init1d(rhon)
+  call init1d(vx); call init1d(vxm); call init1d(rhon)
+  call init1d(p); call init1d(pm); call init1d(pn)
+  call init1d(eps); call init1d(epsm); call init1d(epsn)
+  call init1d(kappa)
+  
 
   !----------------------------------------------------------------------|
   !   time control parameters
@@ -53,7 +54,7 @@ program main
   !----------------------------------------------------------------------|
   !  file open
   !mfile=10; filename='out.dat'
-  !open(mfile,file=filename,form='formatted')
+
   !----------------------------------------------------------------------|
   !  initialize counters
   t=0.d0
@@ -65,32 +66,11 @@ program main
   ! initialize output files
   call reset(ix)
 
-
   !   setup numerical model (grid, initial conditions, etc.)
 
-  !call gridx(ix,x)
- dx=1.d0/dble(ix)
- x(0)=0.d0
- do i=1,ix
- x(i)=x(i-1)+dx
- enddo
+  call gridx(ix,dx,x)
 
-  vx(:)=0.d0
-
-  do i=0,ix
-  if (x(i) <= 0.5d0) then
-   rho(i)=1.d0
-  else
-   rho(i)=0.125d0
-  endif
-  enddo
-  do i = 0, ix
-  if(x(i) <= 0.5d0) then
-   p(i) = 1.d0
-  else
-   p(i) = 0.1d0
-  endif
-  enddo
+  call init_shocktube(ix,x,rho,p)
 
   !----------------------------------------------------------------------|
 
@@ -108,6 +88,7 @@ program main
   !     solve difference equations
   !     by two-step Lax-Wendroff scheme
   ! FIRST STEP
+
   eps(:) = p(:) / (gamma - 1.d0) + 0.5d0 * rho(:) * vx(:)**2
 
   f0(:)=rho(:)*vx(:)

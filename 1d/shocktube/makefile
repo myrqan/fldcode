@@ -5,7 +5,7 @@ SRCS = initial_condition.f90 file_output.f90 main.f90
 
 OBJS = initial_condition.o file_output.o main.o
 
-EXEC = calc
+EXEC = a.out
 
 all : $(EXEC)
 

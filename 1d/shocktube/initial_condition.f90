@@ -1,15 +1,28 @@
 module initial_condition
   implicit none
   contains
-    subroutine gridx(ix,x)
+    subroutine init0d(sc)
+      double precision, intent(inout) :: sc
+      ! sc : scalar value (double)
+      sc = 0.d0
+    end subroutine init0d
+
+    subroutine init1d(ary)
+      double precision,intent(inout) :: ary(:)
+      ! ary : list value (double)
+      ary(:) = 0.d0
+    end subroutine init1d
+
+    subroutine gridx(ix,dx,x)
       integer, intent(in) :: ix
+      double precision, intent(inout):: dx
       double precision,intent(inout) :: x(0:ix)
       ! ix : number of grids
+      ! dx : grid size (double)
       ! x(0:ix) : position (double)
-      double precision :: dx
       integer :: i
       
-      dx = 1.d0 / ix
+      dx = 1.d0 / dble(ix)
 
       x(0) = 0.d0
       do i = 1, ix
