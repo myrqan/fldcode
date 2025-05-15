@@ -1,0 +1,6 @@
+*.dac
+*.png
+.DS_Store
+*.mod
+*.o
+*.pyc
