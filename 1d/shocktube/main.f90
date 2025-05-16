@@ -85,7 +85,8 @@ program main
   ns=ns+1
   !----------------------------------------------------------------------|
   !     time spacing
-  dt=1.d-4
+
+  dt = 1.d-5
   !----------------------------------------------------------------------|
   !     solve difference equations
   !     by two-step Lax-Wendroff scheme
@@ -162,15 +163,15 @@ program main
   call calc_coef_k(qv,kappa,vx,ix,dx)
 
   u=rho
-  call arvis1d(qv,kappa,u,um,ix,dt,dx)
+  call arvis1d(kappa,u,um,ix,dt,dx)
   rhom=um
 
   u = rho*vx
-  call arvis1d(qv,kappa,u,um,ix,dt,dx)
+  call arvis1d(kappa,u,um,ix,dt,dx)
   vxm = um/rhom
 
   u = eps
-  call arvis1d(qv,kappa,u,um,ix,dt,dx)
+  call arvis1d(kappa,u,um,ix,dt,dx)
   epsm = um
 
   ! update

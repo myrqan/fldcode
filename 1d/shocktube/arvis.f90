@@ -11,9 +11,9 @@ module arvis
       enddo
     end subroutine calc_coef_k
 
-    subroutine arvis1d(qv,k,uu,uum,ix,dt,dx)
+    subroutine arvis1d(k,uu,uum,ix,dt,dx)
       integer,intent(in) :: ix
-      double precision,intent(in) :: qv,k(0:ix),uu(0:ix),dt,dx
+      double precision,intent(in) :: k(0:ix),uu(0:ix),dt,dx
       double precision,intent(inout) :: uum(0:ix)
       integer :: i
       uum = 0.d0

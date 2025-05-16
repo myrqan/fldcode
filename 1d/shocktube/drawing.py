@@ -12,10 +12,11 @@ p = read.read_1d('p.dac')
 
 
 # for graphing
+plt.rcParams['font.size']=15
+plt.rcParams["font.family"] = "Courier New"
 fig = plt.figure(figsize=(5, 5))
 ax = fig.add_subplot(111)
 #ax.set_aspect('equal')
-plt.rcParams['font.size']=15
 plt.tick_params(labelsize=10)
 
 
