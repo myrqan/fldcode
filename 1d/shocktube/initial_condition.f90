@@ -10,7 +10,7 @@ module initial_condition
     subroutine init1d(ary)
       double precision,intent(inout) :: ary(:)
       ! ary : list value (double)
-      ary(:) = 0.d0
+      ary = 0.d0
     end subroutine init1d
 
     subroutine gridx(ix,dx,x)

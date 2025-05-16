@@ -1,24 +1,27 @@
 program main
+  !======================================================================|
+  !     use MODULES
+  !======================================================================|
   use file_output
   use initial_condition
+  use mlw
+  use boundary
+  use arvis
   !======================================================================|
   !     array definitions
   !======================================================================|
-  implicit none
+  IMPLICIT NONE
   character(len=100) :: formatoutdata,formatoutmessage,formatstopmessage
   character(len=80) :: filename
   character(len=30) :: filenum
   integer :: mfile
   integer,parameter :: ix=1000
   double precision :: x(0:ix),dx
-  double precision :: u(0:ix),um(0:ix)
+  double precision :: u(0:ix),um(0:ix),un(0:ix)
   double precision :: f(0:ix),f0(0:ix)
   double precision :: t,dt,tend
-  integer :: ns
+  integer :: ns, nd
   double precision :: tout,dtout
-  integer :: nd
-  integer :: i
-  !double precision :: cs
   double precision, parameter :: pi = 4 * atan(1.d0)
   double precision :: rho(0:ix),rhom(0:ix),rhon(0:ix)
   double precision :: vx(0:ix),vxm(0:ix),vxn(0:ix)
@@ -26,6 +29,7 @@ program main
   double precision :: eps(0:ix),epsm(0:ix),epsn(0:ix)
   double precision :: kappa(0:ix),qv
   double precision, parameter :: gamma = 1.4d0
+  integer :: i
   !======================================================================|
   !     prologue
   !======================================================================|
@@ -38,23 +42,18 @@ program main
   !   initialize
 
   call init1d(x)
-  call init1d(u); call init1d(um)
+  call init1d(u); call init1d(um); call init1d(un)
   call init1d(f); call init1d(f0)
   call init1d(rho); call init1d(rhom); call init1d(rhon)
   call init1d(vx); call init1d(vxm); call init1d(rhon)
   call init1d(p); call init1d(pm); call init1d(pn)
   call init1d(eps); call init1d(epsm); call init1d(epsn)
   call init1d(kappa)
-  
 
   !----------------------------------------------------------------------|
   !   time control parameters
   tend=0.141d0  ! time for end of calculation
   dtout=0.02d0 ! time spacing for data output
-  !----------------------------------------------------------------------|
-  !  file open
-  !mfile=10; filename='out.dat'
-
   !----------------------------------------------------------------------|
   !  initialize counters
   t=0.d0
@@ -67,14 +66,17 @@ program main
   call reset(ix)
 
   !   setup numerical model (grid, initial conditions, etc.)
-
   call gridx(ix,dx,x)
-
   call init_shocktube(ix,x,rho,p)
 
   !----------------------------------------------------------------------|
 
   call put1dreal(11,'x.dac',x)
+  call put0dreal(10,'t.dac',t)
+  call put1dreal(15,'rho.dac',rho)
+  call put1dreal(16,'vx.dac',vx)
+  call put1dreal(17,'p.dac',p)
+  call put1dreal(18,'eps.dac',eps)
 
   !======================================================================|
   !     time integration 
@@ -87,115 +89,101 @@ program main
   !----------------------------------------------------------------------|
   !     solve difference equations
   !     by two-step Lax-Wendroff scheme
+
+  !----------------------------------------------------------------------|
   ! FIRST STEP
+  !----------------------------------------------------------------------|
 
-  eps(:) = p(:) / (gamma - 1.d0) + 0.5d0 * rho(:) * vx(:)**2
+  eps = p / (gamma - 1.d0) + 0.5d0 * rho * vx**2
 
-  f0(:)=rho(:)*vx(:)
-  u(:)=rho(:)
-  do i=0,ix-1
-  um(i)=0.5d0*(u(i+1)+u(i))-0.5d0*dt/dx*(f0(i+1)-f0(i))
-  enddo
-  rhom(:)=um(:)
+  f0 = rho*vx
+  u = rho
+  call mlw1d1st(u,um,f0,ix,dt,dx)
+  rhom = um
 
-  f0(:)=rho(:)*vx(:)**2 + p(:)
-  u(:)=rho(:)*vx(:)
-  do i=0,ix-1
-  um(i)=0.5d0*(u(i+1)+u(i))-0.5d0*dt/dx*(f0(i+1)-f0(i))
-  enddo
-  vxm(:)=um(:)/rhom(:)
+  f0 = rho * vx**2 + p
+  u = rho * vx
+  call mlw1d1st(u,um,f0,ix,dt,dx)
+  vxm=um/rhom
 
-  f0(:) = (eps(:) + p(:)) * vx(:)
-  u(:) = eps(:)
-  do i = 0, ix-1
-  um(i)=0.5d0*(u(i+1)+u(i))-0.5d0*dt/dx*(f0(i+1)-f0(i))
-  enddo
-  epsm(:) = um(:)
+  f0 = (eps + p) * vx
+  u = eps
+  call mlw1d1st(u,um,f0,ix,dt,dx)
+  epsm = um
 
+  !----------------------------------------------------------------------|
   ! SECOND STEP
+  !----------------------------------------------------------------------|
 
-  pm(:) = (gamma - 1.d0) * (epsm(:) - 0.5d0 * rhom(:) * vxm(:)**2)
+  pm = (gamma-1.d0) * (epsm - 0.5d0 * rhom * vxm**2)
 
-  f(:)=rhom(:)*vxm(:)
-  u(:)=rho(:)
-  do i=1,ix-1
-  u(i)=u(i)-dt/dx*(f(i)-f(i-1))
-  enddo
-  rhon(:)=u(:)
+  f = rhom*vxm
+  u = rho
+  call mlw1d2nd(u,un,f,ix,dt,dx)
+  rhon = un
 
-  f(:)=rhom(:)*vxm(:)**2+pm(:)
-  u(:)=rho(:)*vx(:)
-  do i=1,ix-1
-  u(i)=u(i)-dt/dx*(f(i)-f(i-1))
-  enddo
-  vxn(:)=u(:)/rhon(:)
+  f = rhom*vxm**2 + pm
+  u = rho*vx
+  call mlw1d2nd(u,un,f,ix,dt,dx)
+  vxn = un/rhon
 
-  f(:) = (epsm(:) + pm(:)) * vxm(:)
-  u(:) = eps(:)
-  do i=1,ix-1
-  u(i)=u(i)-dt/dx*(f(i)-f(i-1))
-  enddo
-  epsn(:) = u(:)
+  f = (epsm + pm) * vxm
+  u = eps
+  call mlw1d2nd(u,un,f,ix,dt,dx)
+  epsn = un
 
-  pn(:) = (gamma - 1.d0) * (epsn(:) - 0.5d0 * rhon(:) * vxn(:)**2)
+  pn = (gamma - 1.d0) * (epsn - 0.5d0 * rhon * vxn**2)
+
   !----------------------------------------------------------------------|
   !     update
-  rho(:)=rhon(:)
-  vx(:)=vxn(:)
+  rho(:) = rhon(:)
+  vx(:) = vxn(:)
   eps(:) = epsn(:)
   p(:) = pn(:)
+
   t=t+dt
   !----------------------------------------------------------------------|
   !     boundary condition
-  rho(0)=rho(1)
-  vx(0)=vx(1)
-  eps(0) = eps(1)
-  p(0) = p(1)
-  rho(ix)=rho(ix-1)
-  vx(ix)=vx(ix-1)
-  eps(ix) = eps(ix-1)
-  p(ix) = p(ix-1)
+  call bnd1d_f_lr(rho,ix)
+  call bnd1d_f_lr(vx,ix)
+  call bnd1d_f_lr(eps,ix)
+  call bnd1d_f_lr(p,ix)
+
   !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   ! artificial viscosity
   !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-  qv=5.0d0
-  do i=0,ix-1
-  kappa(i)=qv*dx*abs(vx(i+1)-vx(i))
-  enddo
 
-  u(:)=rho(:)
-  do i=1,ix-1
-  um(i)=u(i)+dt/dx*( kappa(i  )/dx*(u(i+1)-u(i)) &
-    &                - kappa(i-1)/dx*(u(i)-u(i-1)) )
-  enddo
-  rhom(:)=um(:)
+  qv=4.0d0
 
-  u(:)=rho(:)*vx(:)
-  do i=1,ix-1
-  um(i)=u(i)+dt/dx*( kappa(i  )/dx*(u(i+1)-u(i)) &
-    &                - kappa(i-1)/dx*(u(i)-u(i-1)) )
-  enddo
-  vxm(:)=um(:)/rhom(:)
+  if(nd == 1) then
+    call qv_param(qv)
+  endif
 
-  u(:) = eps(:)
-  do i=1,ix-1
-  um(i)=u(i)+dt/dx*( kappa(i  )/dx*(u(i+1)-u(i)) &
-    &                - kappa(i-1)/dx*(u(i)-u(i-1)) )
-  enddo
-  epsm(:) = um(:)
+  call calc_coef_k(qv,kappa,vx,ix,dx)
 
+  u=rho
+  call arvis1d(qv,kappa,u,um,ix,dt,dx)
+  rhom=um
 
+  u = rho*vx
+  call arvis1d(qv,kappa,u,um,ix,dt,dx)
+  vxm = um/rhom
+
+  u = eps
+  call arvis1d(qv,kappa,u,um,ix,dt,dx)
+  epsm = um
+
+  ! update
   rho(:)=rhom(:)
   vx(:)=vxm(:)
   eps(:) = epsm(:)
+
   !----------------------------------------------------------------------|
   !     boundary condition
-  rho(0)=rho(1)
-  vx(0)=vx(1)
-  eps(0) = eps(1)
-  rho(ix)=rho(ix-1)
-  vx(ix)=vx(ix-1)
-  eps(ix) = eps(ix-1)
+  call bnd1d_f_lr(rho,ix)
+  call bnd1d_f_lr(vx,ix)
+  call bnd1d_f_lr(eps,ix)
+
   !----------------------------------------------------------------------|
 
   !     data output 
@@ -206,23 +194,19 @@ program main
     call put1dreal(16,'vx.dac',vx)
     call put1dreal(17,'p.dac',p)
     call put1dreal(18,'eps.dac',eps)
-
-
     write(*,formatoutmessage) ns,t,nd
 
     tout=tout+dtout
     nd=nd+1
-
   endif
 
   enddo ! do while (t < tend)
+
   !======================================================================|
-  !     epilogue
+  !     ending msg
   !======================================================================|
-  !  ending message
   write(*,formatstopmessage) ns,t
   write(*,*) '  ### normal stop ###'
 
   stop
 end program main
-
