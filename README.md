@@ -10,4 +10,5 @@
 - df/dt + dU/dx = S(x, t)のように右辺にsource termがある場合の取り扱いを考える．
     - modified Lax-Wendroff法の文献を調査する．
 - CFL条件を満たすようにdtの値をとるように（dtをstep毎に可変の値と）する．
+- 1d/sedov/main.f90 L 136 改修中
 

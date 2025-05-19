@@ -15,8 +15,9 @@ program main
   character(len=80) :: filename
   character(len=30) :: filenum
   integer :: mfile
-  integer,parameter :: ix=3000
+  integer,parameter :: ix=1000
   double precision :: x(0:ix),dx
+  double precision :: s(0:ix), sm(0:ix)
   double precision :: u(0:ix),um(0:ix),un(0:ix)
   double precision :: f(0:ix),f0(0:ix)
   double precision :: t,dt,tend
@@ -40,8 +41,8 @@ program main
   formatstopmessage= '(1x," stop     ","step=",i8," t=",e10.3)'
   !----------------------------------------------------------------------|
   !   initialize
-
   call init1d(x)
+  call init1d(s); call init1d(sm)
   call init1d(u); call init1d(um); call init1d(un)
   call init1d(f); call init1d(f0)
   call init1d(rho); call init1d(rhom); call init1d(rhon)
@@ -68,6 +69,11 @@ program main
   !   setup numerical model (grid, initial conditions, etc.)
   call gridx(ix,dx,x)
   call init_shocktube(ix,x,rho,p)
+
+  do i = 0, ix
+  s(i) = x(i)**2
+  sm(i) = 0.5d0 * (x(i+1)**2 + x(i)**2)
+  enddo
 
   !----------------------------------------------------------------------|
 
@@ -97,20 +103,20 @@ program main
 
   eps = p / (gamma - 1.d0) + 0.5d0 * rho * vx**2
 
-  f0 = rho*vx
-  u = rho
+  f0 = rho * vx * s
+  u = rho * s
   call mlw1d1st(u,um,f0,ix,dt,dx)
-  rhom = um
+  rhom = um / s
 
-  f0 = rho * vx**2 + p
-  u = rho * vx
+  f0 = (rho * vx**2 + p) * s
+  u = rho * vx * s
   call mlw1d1st(u,um,f0,ix,dt,dx)
-  vxm=um/rhom
+  vxm=um/rhom/s
 
-  f0 = (eps + p) * vx
-  u = eps
+  f0 = (eps + p) * vx * s
+  u = eps * s
   call mlw1d1st(u,um,f0,ix,dt,dx)
-  epsm = um
+  epsm = um / s
 
   !----------------------------------------------------------------------|
   ! SECOND STEP
@@ -118,22 +124,24 @@ program main
 
   pm = (gamma-1.d0) * (epsm - 0.5d0 * rhom * vxm**2)
 
-  f = rhom*vxm
-  u = rho
+  f = rhom*vxm*sm
+  u = rho*s
   call mlw1d2nd(u,un,f,ix,dt,dx)
-  rhon = un
+  rhon = un/s
 
-  f = rhom*vxm**2 + pm
-  u = rho*vx
+  f = (rhom*vxm**2 + pm) * sm
+  u = rho*vx * s
   call mlw1d2nd(u,un,f,ix,dt,dx)
-  vxn = un/rhon
+  vxn = un/rhon/s
+  call mlw1dsrc
 
-  f = (epsm + pm) * vxm
-  u = eps
+  f = (epsm + pm) * vxm * sm
+  u = eps * s
   call mlw1d2nd(u,un,f,ix,dt,dx)
-  epsn = un
+  epsn = un / s
 
   pn = (gamma - 1.d0) * (epsn - 0.5d0 * rhon * vxn**2)
+
 
   !----------------------------------------------------------------------|
   !     update
