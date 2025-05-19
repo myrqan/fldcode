@@ -4,6 +4,7 @@ module boundary
     subroutine bnd1d_f_lr(ary,ix)
       integer,intent(in) :: ix
       double precision, intent(inout) :: ary(0:ix)
+      ary(1) = ary(2); ary(ix-1) = ary(ix-2)
       ary(0) = ary(1); ary(ix)= ary(ix-1)
     end subroutine bnd1d_f_lr
 end module boundary

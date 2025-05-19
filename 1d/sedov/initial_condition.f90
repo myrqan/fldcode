@@ -23,7 +23,7 @@ module initial_condition
       integer :: i
       
       dx = 1.d0 / dble(ix)
-      x(0) = 0.d0
+      x(0) = 0.01d0
       do i = 1, ix
         x(i) = x(i-1) + dx
       enddo
@@ -46,4 +46,17 @@ module initial_condition
       endif
       enddo
     end subroutine init_shocktube
+
+    subroutine init_sedov1d(ix,x,rho,p)
+      integer,intent(in) :: ix
+      double precision,intent(inout) :: x(0:ix),rho(0:ix),p(0:ix)
+      integer :: i
+      double precision :: we
+
+      rho = 1.d0;
+      we = 0.02d0;
+      do i = 0, ix
+        p(i) = (1.d-8 + (1-1.d-8)*exp(-x(i)**2/we**2))
+      enddo
+    end subroutine init_sedov1d
 end module initial_condition
