@@ -11,23 +11,42 @@ program main
   !     array definitions
   !======================================================================|
   IMPLICIT NONE
-  character(len=100) :: formatoutdata,formatoutmessage,formatstopmessage
-  integer,parameter :: margin=0
-  integer,parameter :: ix=1000+2*margin
-  double precision :: x(0:ix),dx
-  double precision :: s(0:ix), sm(0:ix)
-  double precision :: u(0:ix),um(0:ix),un(0:ix),r(0:ix)
-  double precision :: f(0:ix),f0(0:ix)
-  double precision :: t,dt,tend
-  integer :: ns, nd
-  double precision :: tout,dtout
   double precision, parameter :: pi = 4 * atan(1.d0)
-  double precision :: rho(0:ix),rhom(0:ix),rhon(0:ix)
-  double precision :: vx(0:ix),vxm(0:ix),vxn(0:ix)
-  double precision :: p(0:ix),pm(0:ix),pn(0:ix)
-  double precision :: eps(0:ix),epsm(0:ix),epsn(0:ix)
-  double precision :: kappa(0:ix),qv
+
+  character(len=100) :: formatoutdata,formatoutmessage,formatstopmessage
+
+  integer,parameter :: margin=1
+  integer,parameter :: gr_num_x=1000
+  integer,parameter :: ix=2*margin+gr_num_x
+
+  !double precision :: x(0:ix),dx
+  double precision :: x(ix),dx
+  !double precision :: s(0:ix), sm(0:ix)
+  double precision :: s(ix),sm(ix)
+  !double precision :: u(0:ix),um(0:ix),un(0:ix),r(0:ix)
+  double precision :: u(ix),um(ix),un(ix)
+  double precision :: r(ix)
+  !double precision :: f(0:ix),f0(0:ix)
+  double precision :: f(ix),f0(ix)
+
+  !double precision :: rho(0:ix),rhom(0:ix),rhon(0:ix)
+  double precision :: rho(ix),rhom(ix),rhon(ix)
+  !double precision :: vx(0:ix),vxm(0:ix),vxn(0:ix)
+  double precision :: vx(ix),vxm(ix),vxn(ix)
+  !double precision :: p(0:ix),pm(0:ix),pn(0:ix)
+  double precision :: p(ix),pm(ix),pn(ix)
+  !double precision :: eps(0:ix),epsm(0:ix),epsn(0:ix)
+  double precision :: eps(ix),epsm(ix),epsn(ix)
+  !double precision :: kappa(0:ix),qv
+
+  double precision :: kappa(ix),qv
+
   double precision, parameter :: gamma = 5.d0/3.d0
+
+  double precision :: t,dt,tend
+  integer :: ns,nd
+  double precision :: tout,dtout
+
   integer :: i
   !======================================================================|
   !     prologue
@@ -41,10 +60,11 @@ program main
   !   initialize
   call init1d(x)
   call init1d(s); call init1d(sm)
-  call init1d(u); call init1d(um); call init1d(un); call init1d(r)
+  call init1d(u); call init1d(um); call init1d(un)
+  call init1d(r)
   call init1d(f); call init1d(f0)
   call init1d(rho); call init1d(rhom); call init1d(rhon)
-  call init1d(vx); call init1d(vxm); call init1d(rhon)
+  call init1d(vx); call init1d(vxm); call init1d(vxn)
   call init1d(p); call init1d(pm); call init1d(pn)
   call init1d(eps); call init1d(epsm); call init1d(epsn)
   call init1d(kappa)
@@ -56,7 +76,7 @@ program main
   !----------------------------------------------------------------------|
   !  initialize counters
   t=0.d0
-  ns=0      ! number of tme steps
+  ns=0      ! number of time steps
   tout=0.d0  ! time for next output
   nd=1        ! number of output data sets
   !----------------------------------------------------------------------|
@@ -65,12 +85,15 @@ program main
   call reset(ix)
 
   !   setup numerical model (grid, initial conditions, etc.)
-  call gridx(ix,dx,x)
-  call init_sedov1d(ix,x,rho,p)
+  call gridx(ix,margin,dx,x)
+  call init_shocktube(ix,x,rho,p)
+  !call init_sedov1d(ix,x,rho,p)
 
-  do i = 0, ix-1
+  do i = 1, ix
   s(i) = x(i)**2
-  sm(i) = (0.5d0*(x(i)+x(i+1)))**2
+  if (i < ix) then
+    sm(i) = (0.5d0*(x(i)+x(i+1)))**2
+  endif
   enddo
 
   !----------------------------------------------------------------------|
@@ -99,7 +122,8 @@ program main
     !     time spacing
 
     dt = 3.d-4
-    !dtout = dt
+    dtout = dt
+    tend = dt * 10.d0
     !----------------------------------------------------------------------|
     !     solve difference equations
     !     by two-step Lax-Wendroff scheme
@@ -138,12 +162,12 @@ program main
 
     f = (rhom*vxm**2 + pm) * sm
     u = rho*vx * s
-    do i = 0, ix
+    do i = 1, ix
     r(i) = p(i) * 2*x(i)
     enddo
 
     call mlw1d2nd(u,un,f,ix,dt,dx)
-    !call mlw1dsrc(un,r,ix,dt,dx)
+    call mlw1dsrc(un,r,ix,dt,dx)
     vxn = un/rhon/s
 
     f = (epsm + pm) * vxm * sm
@@ -165,7 +189,8 @@ program main
     !----------------------------------------------------------------------|
     !     boundary condition
     call bnd1d_f_lr(rho,ix)
-    call bnd1d_f_lr(vx,ix)
+    !call bnd1d_f_lr(vx,ix)
+    call bnd1d_fix_l(vx, ix)
     call bnd1d_f_lr(eps,ix)
     call bnd1d_f_lr(p,ix)
 
@@ -203,7 +228,7 @@ program main
     !----------------------------------------------------------------------|
     !     boundary condition
     call bnd1d_f_lr(rho,ix)
-    call bnd1d_f_lr(vx,ix)
+    !call bnd1d_f_lr(vx,ix)
     call bnd1d_fix_l(vx,ix)
     call bnd1d_f_lr(eps,ix)
     call bnd1d_f_lr(p,ix)
