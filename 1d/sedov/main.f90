@@ -51,8 +51,8 @@ program main
 
   !----------------------------------------------------------------------|
   !   time control parameters
-  tend=0.141d0  ! time for end of calculation
-  dtout=0.02d-1 ! time spacing for data output
+  tend=0.141d2  ! time for end of calculation
+  dtout=0.02d2 ! time spacing for data output
   !----------------------------------------------------------------------|
   !  initialize counters
   t=0.d0
@@ -66,8 +66,7 @@ program main
 
   !   setup numerical model (grid, initial conditions, etc.)
   call gridx(ix,dx,x)
-  call init_shocktube(ix,x,rho,p)
-  !call init_sedov1d(ix,x,rho,p)
+  call init_sedov1d(ix,x,rho,p)
 
   do i = 0, ix-1
   s(i) = x(i)**2
@@ -84,7 +83,7 @@ program main
   call put1dreal(18,'eps.dac',eps)
 
 
-  call put1dreal_txt(11,'x.txt',x)
+  call put1dreal_txt(21,'x.txt',x)
   call put0dreal_txt(20,'t.txt',t)
   call put1dreal_txt(25,'rho.txt',rho)
   call put1dreal_txt(26,'vx.txt',vx)
@@ -99,7 +98,7 @@ program main
     !----------------------------------------------------------------------|
     !     time spacing
 
-    dt = 1.d-5
+    dt = 1.d-3
     !dtout = dt
     !----------------------------------------------------------------------|
     !     solve difference equations
