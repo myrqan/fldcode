@@ -71,9 +71,9 @@ ax10.set_ylim(-0.05,0.10)
 ax10.set_title(r'Velocity ($x$)')
 
 #for i in range(0,70,10):
-for i in range(np.size(t)):
+for i in range(0,np.size(t),3):
 #i = 0
-    lb = r'$t=$'+str(t[i])[:6]
+    lb = r'$t=$'+str(t[i])[:4]
 
     ax00.plot(x, rho[i],label=lb)
     ax01.plot(x, p[i],label=lb)

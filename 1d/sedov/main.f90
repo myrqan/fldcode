@@ -51,8 +51,8 @@ program main
 
   !----------------------------------------------------------------------|
   !   time control parameters
-  tend=0.141d2  ! time for end of calculation
-  dtout=0.02d2 ! time spacing for data output
+  tend=5.d0  ! time for end of calculation
+  dtout=0.5d0 ! time spacing for data output
   !----------------------------------------------------------------------|
   !  initialize counters
   t=0.d0
@@ -98,7 +98,7 @@ program main
     !----------------------------------------------------------------------|
     !     time spacing
 
-    dt = 1.d-3
+    dt = 3.d-4
     !dtout = dt
     !----------------------------------------------------------------------|
     !     solve difference equations
@@ -193,16 +193,20 @@ program main
     call arvis1d(kappa,u,um,ix,dt,dx)
     epsm = um/s
 
+    pm = (gamma - 1.d0) * (epsm - 0.5d0 * rhom * vxm**2)
     ! update
     rho(:)=rhom(:)
     vx(:)=vxm(:)
     eps(:) = epsm(:)
+    p(:) = pm(:)
 
     !----------------------------------------------------------------------|
     !     boundary condition
     call bnd1d_f_lr(rho,ix)
     call bnd1d_f_lr(vx,ix)
+    call bnd1d_fix_l(vx,ix)
     call bnd1d_f_lr(eps,ix)
+    call bnd1d_f_lr(p,ix)
 
     !----------------------------------------------------------------------|
 

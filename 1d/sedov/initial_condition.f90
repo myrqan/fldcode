@@ -23,7 +23,7 @@ module initial_condition
       integer :: i
       
       dx = 1.d0 / dble(ix)
-      x(0) = 0.01d0
+      x(0) = dx
       do i = 1, ix
         x(i) = x(i-1) + dx
       enddo
