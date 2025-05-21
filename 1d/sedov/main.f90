@@ -18,7 +18,7 @@ program main
   integer,parameter :: ix=2*margin+grid_x
   double precision :: x(ix),dx
   double precision :: u(ix),um(ix),un(ix)
-  double precision :: r(ix)
+  double precision :: r(ix),rn(ix)
   double precision :: f(ix),f0(ix)
   double precision :: t,dt,tend
   integer :: ns, nd
@@ -46,7 +46,7 @@ program main
 
   call init1d(x)
   call init1d(u); call init1d(um); call init1d(un)
-  call init1d(r)
+  call init1d(r); call init1d(rn)
   call init1d(f); call init1d(f0)
   call init1d(rho); call init1d(rhom); call init1d(rhon)
   call init1d(vx); call init1d(vxm); call init1d(rhon)
@@ -131,24 +131,33 @@ program main
 
   pm = (gamma-1.d0) * (epsm - 0.5d0 * rhom * vxm**2)
 
+  ! MASS CONSERVATION
   f = rhom*vxm*sm
   u = rho*s
   call mlw1d2nd(u,un,f,ix,dt,dx)
   rhon = un / s
 
-  f = (rhom*vxm**2 + pm)*sm
-  u = rho*vx*s
-  do i = 1, ix
-  r(i) = p(i) * 2.d0 * x(i)
-  enddo
-  call mlw1d2nd(u,un,f,ix,dt,dx)
-  call mlw1dsrc(un,r,ix,dt,dx)
-  vxn = un/rhon/s
-
+  ! ENERGY CONSERVATION 
   f = (epsm + pm) * vxm *sm
   u = eps*s
   call mlw1d2nd(u,un,f,ix,dt,dx)
   epsn = un/s
+
+  ! MOMENTUM CONSERVATION
+  f = (rhom*vxm**2+pm)*sm
+  u = rho*vx*s
+  call mlw1d2nd(u,un,f,ix,dt,dx)
+  vxn=un/rhon/s
+  pn = (gamma - 1.d0) * (epsn - 0.5d0 * rhon * vxn**2)
+
+  ! CORRECTION
+  do i = 1, ix
+  ! SOURCE TERM
+  r(i) = p(i) * 2.d0 * x(i)
+  rn(i) = pn(i) * 2.d0 * x(i)
+  enddo
+  call mlw1dsrc(un,r,rn,ix,dt,dx)
+  vxn = un/rhon/s
 
   pn = (gamma - 1.d0) * (epsn - 0.5d0 * rhon * vxn**2)
 
@@ -173,7 +182,7 @@ program main
   ! artificial viscosity
   !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-  qv=5.0d0
+  qv=3.0d0
 
   if(nd == 1) then
     call qv_param(qv)

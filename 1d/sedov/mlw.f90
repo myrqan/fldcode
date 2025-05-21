@@ -25,16 +25,16 @@ module mlw
       enddo
     end subroutine mlw1d2nd 
 
-    subroutine mlw1dsrc(uu,ss,ix,dt,dx)
+    subroutine mlw1dsrc(uu,ss,ssn,ix,dt,dx)
       integer,intent(in) :: ix
-      double precision,intent(in) :: ss(ix)
+      double precision,intent(in) :: ss(ix),ssn(ix)
       double precision,intent(in) :: dt,dx
       double precision,intent(inout) :: uu(ix)
       double precision :: uun(ix)
       integer :: i
       uun = 0.d0
       do i = 1, ix
-      uun(i) = uu(i) + ss(i) * dt
+      uun(i) = uu(i) + 0.5d0 * (ss(i)+ssn(i)) * dt
       enddo
       uu = uun
     end subroutine mlw1dsrc

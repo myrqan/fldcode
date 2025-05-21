@@ -13,16 +13,20 @@ vx = read.read_1d('vx.dac')
 X = np.size(x)
 N = np.size(t)
 
-gam = 5.0/3.0
-xi0 = 1.15
+gam = 5./3
+xi0 = 1.08
 
 ro0 = 1.0
-enttl = (np.sqrt(np.pi)*0.1)**3/(gam-1)
+we = 0.10
+enttl = (np.sqrt(np.pi)*we)**3/(gam-1)
 scl = np.zeros(N)
+
 for i in range (1, N):
-    scl[i] = xi0 * enttl**0.2 * t[i]**(0.4)
+    scl[i] = xi0 * enttl**0.2 * t[i]**(0.35)
+
 d_s = np.zeros(N)
 d_s[:] = np.nan
+
 for i in range(1, N):
     d_s[i] = 0.4 * scl[i] / t[i]
 
@@ -44,59 +48,67 @@ for i in range(1, N):
 
 
 
-fig = plt.figure(figsize=(7, 5))
+fig = plt.figure(figsize=(10, 5))
 plt.rcParams['font.size']=15
-plt.rcParams['font.family']='Palatino'
+plt.rcParams['font.family']='STIXGeneral'
 plt.rcParams['mathtext.fontset']='stix'
+
 def plotr():
-    plt.xlim(0.0, 1.2)
-    plt.title(r'$\rho$, (density) scaled')
-    for n in range(1, N, 3):
+    ax00 = fig.add_subplot(221)
+    ax00.set_xlim(0.0, 1.2)
+    ax00.set_title(r'$\rho$, (density) scaled')
+    for n in range(1, N, 2):
+        if n == 1:
+            continue
         time = Decimal(str(t[n])).quantize(Decimal('0.01'),ROUND_HALF_UP)
-        plt.plot(lam[n], sc_ro[n], label=(r'$t=$'+str(time)))
-    plt.legend(loc='upper left', bbox_to_anchor=(1,1))
-    plt.savefig('fig/ro_scaled.png',dpi=300,bbox_inches='tight')
-    plt.cla()
+        ax00.plot(lam[n], sc_ro[n], label=(r'$t=$'+str(time)))
+    ax00.legend(loc='upper left', bbox_to_anchor=(1,1))
+    #plt.savefig('fig/ro_scaled.png',dpi=300,bbox_inches='tight')
+    #plt.cla()
     #plt.show()
 
 
 def plotv():
-    fig = plt.figure(figsize=(7, 5))
-    plt.rcParams['font.size']=15
-    plt.rcParams['font.family']='Palatino'
-    plt.rcParams['mathtext.fontset']='stix'
-    plt.tick_params(labelsize=13)
+    ax01 = fig.add_subplot(222)
     plt.xlim(0.0, 1.2)
     plt.title(r'$v_r$, (velocity) scaled')
     plt.ylim(0,1.2)
-    for n in range(1, N, 3):
+    for n in range(1, N, 2):
+        if n == 1:
+            continue
         time = Decimal(str(t[n])).quantize(Decimal('0.01'),ROUND_HALF_UP)
-        plt.plot(lam[n], sc_vx[n], label=(r'$t=$'+str(time)))
-    plt.legend(loc='upper left', bbox_to_anchor=(1,1))
-    plt.savefig('fig/vr_scaled.png',dpi=300, bbox_inches='tight')
-    plt.cla()
+        ax01.plot(lam[n], sc_vx[n], label=(r'$t=$'+str(time)))
+    ax01.legend(loc='upper left', bbox_to_anchor=(1,1))
+    #plt.savefig('fig/vr_scaled.png',dpi=300, bbox_inches='tight')
+    #plt.cla()
     #plt.show()
 
     
 def plotp():
-    fig = plt.figure(figsize=(7, 5))
-    plt.rcParams['font.size']=15
-    plt.rcParams['font.family']='Palatino'
-    plt.rcParams['mathtext.fontset']='stix'
-    plt.tick_params(labelsize=13)
+    ax02 = fig.add_subplot(223)
     plt.xlim(0.0, 1.2)
     plt.title(r'$P_r$, (pressure) scaled')
     #plt.yscale('log')
     plt.ylim(0,1.2)
     for n in range(1, N, 2):
+        if n == 1:
+            continue
         time = Decimal(str(t[n])).quantize(Decimal('0.01'),ROUND_HALF_UP)
-        plt.plot(lam[n], sc_pr[n], label=(r'$t=$'+str(time)))
-    plt.legend(loc='upper left', bbox_to_anchor=(1,1))
-    plt.savefig('fig/pr_scaled.png',dpi=300,bbox_inches='tight')
-    plt.cla()
+        ax02.plot(lam[n], sc_pr[n], label=(r'$t=$'+str(time)))
+    ax02.legend(loc='upper left', bbox_to_anchor=(1,1))
+    #plt.savefig('fig/pr_scaled.png',dpi=300,bbox_inches='tight')
+    #plt.cla()
     #plt.show()
 
 plotv()
 plotp()
 plotr()
 
+
+
+plt.tight_layout()
+#plt.show()
+
+plt.savefig('fig/scaled.png',dpi=300,bbox_inches='tight')
+
+exit()

@@ -19,7 +19,7 @@ plt.rcParams['mathtext.fontset']='stix'
 
 ax00 = fig.add_subplot(221)
 ax00.set_xlim(0,1.0)
-ax00.set_ylim(0,20)
+ax00.set_ylim(0,10)
 ax00.set_title(r'Density')
 
 ax01 = fig.add_subplot(222)

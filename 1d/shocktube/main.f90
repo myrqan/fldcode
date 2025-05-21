@@ -142,7 +142,6 @@ program main
   eps(:) = epsn(:)
   p(:) = pn(:)
 
-  t=t+dt
   !----------------------------------------------------------------------|
   !     boundary condition
   call bnd1d_f_lr(rho,ix)
@@ -187,6 +186,7 @@ program main
 
   !----------------------------------------------------------------------|
 
+  t=t+dt
   !     data output 
   if (t >= tout) then
 
