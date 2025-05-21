@@ -11,32 +11,26 @@ program main
   !     array definitions
   !======================================================================|
   IMPLICIT NONE
-  double precision, parameter :: pi = 4 * atan(1.d0)
-
   character(len=100) :: formatoutdata,formatoutmessage,formatstopmessage
-
-  integer,parameter :: margin=1
-  integer,parameter :: gr_num_x=1000
-  integer,parameter :: ix=2*margin+gr_num_x
-
+  integer :: mfile
+  integer,parameter :: margin = 1
+  integer,parameter :: grid_x = 1024
+  integer,parameter :: ix=2*margin+grid_x
   double precision :: x(ix),dx
-  double precision :: s(ix),sm(ix)
   double precision :: u(ix),um(ix),un(ix)
   double precision :: r(ix)
   double precision :: f(ix),f0(ix)
-
+  double precision :: t,dt,tend
+  integer :: ns, nd
+  double precision :: tout,dtout
+  double precision, parameter :: pi = 4 * atan(1.d0)
   double precision :: rho(ix),rhom(ix),rhon(ix)
   double precision :: vx(ix),vxm(ix),vxn(ix)
   double precision :: p(ix),pm(ix),pn(ix)
   double precision :: eps(ix),epsm(ix),epsn(ix)
-
+  double precision :: s(ix), sm(ix)
   double precision :: kappa(ix),qv
-
   double precision, parameter :: gamma = 5.d0/3.d0
-
-  double precision :: t,dt,tend
-  integer :: ns,nd
-  double precision :: tout,dtout
 
   integer :: i
   !======================================================================|
@@ -49,25 +43,26 @@ program main
   formatstopmessage= '(1x," stop     ","step=",i8," t=",e10.3)'
   !----------------------------------------------------------------------|
   !   initialize
+
   call init1d(x)
-  call init1d(s); call init1d(sm)
   call init1d(u); call init1d(um); call init1d(un)
   call init1d(r)
   call init1d(f); call init1d(f0)
   call init1d(rho); call init1d(rhom); call init1d(rhon)
-  call init1d(vx); call init1d(vxm); call init1d(vxn)
+  call init1d(vx); call init1d(vxm); call init1d(rhon)
   call init1d(p); call init1d(pm); call init1d(pn)
   call init1d(eps); call init1d(epsm); call init1d(epsn)
+  call init1d(s); call init1d(sm)
   call init1d(kappa)
 
   !----------------------------------------------------------------------|
   !   time control parameters
-  tend=5.d0  ! time for end of calculation
-  dtout=0.5d0 ! time spacing for data output
+  tend=0.6d1  ! time for end of calculation
+  dtout=0.1d1 ! time spacing for data output
   !----------------------------------------------------------------------|
   !  initialize counters
   t=0.d0
-  ns=0      ! number of time steps
+  ns=0      ! number of tme steps
   tout=0.d0  ! time for next output
   nd=1        ! number of output data sets
   !----------------------------------------------------------------------|
@@ -78,19 +73,12 @@ program main
   !   setup numerical model (grid, initial conditions, etc.)
   call gridx(ix,margin,dx,x)
   call init_shocktube(ix,x,rho,p)
-  !call init_sedov1d(ix,x,rho,p)
+  call init_sedov1d(ix,x,rho,p)
 
   do i = 1, ix
   s(i) = x(i)**2
   if (i < ix) then
-    sm(i) = (0.5d0*(x(i)+x(i+1)))**2
-  endif
-  enddo
-
-  do i = 1, ix
-  s(i) = 1.d0
-  if (i < ix) then
-    sm(i) = 1.d0
+    sm(i) = (0.5d0*(x(i) + x(i+1)))**2
   endif
   enddo
 
@@ -103,150 +91,130 @@ program main
   call put1dreal(17,'p.dac',p)
   call put1dreal(18,'eps.dac',eps)
 
+  !======================================================================|
+  !     time integration 
+  !======================================================================|
+  do while (t < tend)
+  ns=ns+1
+  !----------------------------------------------------------------------|
+  !     time spacing
 
-  call put1dreal_txt(21,'x.txt',x)
-  call put0dreal_txt(20,'t.txt',t)
-  call put1dreal_txt(25,'rho.txt',rho)
-  call put1dreal_txt(26,'vx.txt',vx)
-  call put1dreal_txt(27,'p.txt',p)
-  call put1dreal_txt(28,'eps.txt',eps)
+  dt = 2.d-4
+  !----------------------------------------------------------------------|
+  !     solve difference equations
+  !     by two-step Lax-Wendroff scheme
 
-    !======================================================================|
-    !     time integration 
-    !======================================================================|
-    do while (t < tend)
-    ns=ns+1
-    !----------------------------------------------------------------------|
-    !     time spacing
+  !----------------------------------------------------------------------|
+  ! FIRST STEP
+  !----------------------------------------------------------------------|
 
-    dt = 3.d-4
-    ! ここから下は消す debug用
-    dtout = dt
-    tend = dt * 10.d0
-    !----------------------------------------------------------------------|
-    !     solve difference equations
-    !     by two-step Lax-Wendroff scheme
+  eps = p / (gamma - 1.d0) + 0.5d0 * rho * vx**2
 
-    !----------------------------------------------------------------------|
-    ! FIRST STEP
-    !----------------------------------------------------------------------|
+  f0 = rho*vx*s
+  u = rho*s
+  call mlw1d1st(u,um,f0,ix,dt,dx)
+  rhom = um / sm
 
-    eps = p / (gamma - 1.d0) + 0.5d0 * rho * vx**2
+  f0 = (rho * vx**2 + p) * s
+  u = rho * vx * s
+  call mlw1d1st(u,um,f0,ix,dt,dx)
+  vxm=um/rhom/sm
 
-    u = rho * s
-    f0 = rho * vx * s
-    call mlw1d1st(u,um,f0,ix,dt,dx)
-    rhom = um / sm
+  f0 = (eps + p) * vx * s
+  u = eps * s
+  call mlw1d1st(u,um,f0,ix,dt,dx)
+  epsm = um / sm
 
-    u = rho * vx * s
-    f0 = (rho * vx**2 + p) * s
-    call mlw1d1st(u,um,f0,ix,dt,dx)
-    vxm = um / rhom / sm
+  !----------------------------------------------------------------------|
+  ! SECOND STEP
+  !----------------------------------------------------------------------|
 
-    u = eps * s
-    f0 = (eps + p) * vx * s
-    call mlw1d1st(u,um,f0,ix,dt,dx)
-    epsm = um / sm
+  pm = (gamma-1.d0) * (epsm - 0.5d0 * rhom * vxm**2)
 
-    !----------------------------------------------------------------------|
-    ! SECOND STEP
-    !----------------------------------------------------------------------|
+  f = rhom*vxm*sm
+  u = rho*s
+  call mlw1d2nd(u,un,f,ix,dt,dx)
+  rhon = un / s
 
-    pm = (gamma-1.d0) * (epsm - 0.5d0 * rhom * vxm**2)
+  f = (rhom*vxm**2 + pm)*sm
+  u = rho*vx*s
+  do i = 1, ix
+  r(i) = p(i) * 2.d0 * x(i)
+  enddo
+  call mlw1d2nd(u,un,f,ix,dt,dx)
+  call mlw1dsrc(un,r,ix,dt,dx)
+  vxn = un/rhon/s
 
-    u = rho*s
-    f = rhom*vxm*sm
-    call mlw1d2nd(u,un,f,ix,dt,dx)
-    rhon = un/s
+  f = (epsm + pm) * vxm *sm
+  u = eps*s
+  call mlw1d2nd(u,un,f,ix,dt,dx)
+  epsn = un/s
 
-    u = rho*vx * s
-    f = (rhom*vxm**2 + pm) * sm
-    do i = 1, ix
-    r(i) = p(i) * 2*x(i)
-    enddo
-    call mlw1d2nd(u,un,f,ix,dt,dx)
-    !call mlw1dsrc(un,r,ix,dt,dx)
-    vxn = un/rhon/s
+  pn = (gamma - 1.d0) * (epsn - 0.5d0 * rhon * vxn**2)
 
-    u = eps * s
-    f = (epsm + pm) * vxm * sm
-    call mlw1d2nd(u,un,f,ix,dt,dx)
-    epsn = un / s
+  !----------------------------------------------------------------------|
+  !     update
+  rho(:) = rhon(:)
+  vx(:) = vxn(:)
+  eps(:) = epsn(:)
+  p(:) = pn(:)
 
-    pn = (gamma - 1.d0) * (epsn - 0.5d0 * rhon * vxn**2)
+  t=t+dt
+  !----------------------------------------------------------------------|
+  !     boundary condition
+  call bnd1d_f_lr(rho,ix)
+  !call bnd1d_f_lr(vx,ix)
+  call bnd1d_fix_l(vx,ix)
+  call bnd1d_f_r(vx,ix)
+  call bnd1d_f_lr(eps,ix)
+  call bnd1d_f_lr(p,ix)
 
+  !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  ! artificial viscosity
+  !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-    !----------------------------------------------------------------------|
-    !     update
-    rho(:) = rhon(:)
-    vx(:) = vxn(:)
-    eps(:) = epsn(:)
-    p(:) = pn(:)
+  qv=5.0d0
 
-    t=t+dt
-    !----------------------------------------------------------------------|
-    !     boundary condition
-    call bnd1d_f_lr(rho,ix)
-    call bnd1d_f_lr(vx,ix)
-    !call bnd1d_fix_l(vx, ix)
-    call bnd1d_f_lr(eps,ix)
-    call bnd1d_f_lr(p,ix)
+  if(nd == 1) then
+    call qv_param(qv)
+  endif
 
-    !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    ! artificial viscosity
-    !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  call calc_coef_k(qv,kappa,vx,ix,dx)
 
-    qv=4.0d0
+  u=rho*s
+  call arvis1d(kappa,u,um,ix,dt,dx)
+  rhom=um/s
 
-    if(nd == 1) then
-      call qv_param(qv)
-    endif
+  u = rho*vx*s
+  call arvis1d(kappa,u,um,ix,dt,dx)
+  vxm = um/rhom/s
 
-    call calc_coef_k(qv,kappa,vx,ix,dx)
+  u = eps*s
+  call arvis1d(kappa,u,um,ix,dt,dx)
+  epsm = um/s
 
-    u=rho*s
-    call arvis1d(kappa,u,um,ix,dt,dx)
-    rhom=um/s
+  ! update
+  rho(:)=rhom(:)
+  vx(:)=vxm(:)
+  eps(:) = epsm(:)
 
-    u = rho*vx*s
-    call arvis1d(kappa,u,um,ix,dt,dx)
-    vxm = um/rhom/s
+  !----------------------------------------------------------------------|
+  !     boundary condition
+  call bnd1d_f_lr(rho,ix)
+  call bnd1d_fix_l(vx,ix)
+  call bnd1d_f_r(vx,ix)
+  call bnd1d_f_lr(eps,ix)
 
-    u = eps*s
-    call arvis1d(kappa,u,um,ix,dt,dx)
-    epsm = um/s
+  !----------------------------------------------------------------------|
 
-    pm = (gamma - 1.d0) * (epsm - 0.5d0 * rhom * vxm**2)
-    ! update
-    rho(:)=rhom(:)
-    vx(:)=vxm(:)
-    eps(:) = epsm(:)
-    p(:) = pm(:)
-
-    !----------------------------------------------------------------------|
-    !     boundary condition
-    call bnd1d_f_lr(rho,ix)
-    call bnd1d_f_lr(vx,ix)
-    !call bnd1d_fix_l(vx,ix)
-    call bnd1d_f_lr(eps,ix)
-    call bnd1d_f_lr(p,ix)
-
-    !----------------------------------------------------------------------|
-
-    !     data output 
-    if (t >= tout) then
+  !     data output 
+  if (t >= tout) then
 
     call put0dreal(10,'t.dac',t)
     call put1dreal(15,'rho.dac',rho)
     call put1dreal(16,'vx.dac',vx)
     call put1dreal(17,'p.dac',p)
     call put1dreal(18,'eps.dac',eps)
-
-    call put0dreal_txt(20,'t.txt',t)
-    call put1dreal_txt(25,'rho.txt',rho)
-    call put1dreal_txt(26,'vx.txt',vx)
-    call put1dreal_txt(27,'p.txt',p)
-    call put1dreal_txt(28,'eps.txt',eps)
     write(*,formatoutmessage) ns,t,nd
 
     tout=tout+dtout

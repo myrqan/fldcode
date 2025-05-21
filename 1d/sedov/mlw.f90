@@ -34,7 +34,7 @@ module mlw
       integer :: i
       uun = 0.d0
       do i = 1, ix
-      uun(i) = uu(i) + ss(i) + dt
+      uun(i) = uu(i) + ss(i) * dt
       enddo
       uu = uun
     end subroutine mlw1dsrc
