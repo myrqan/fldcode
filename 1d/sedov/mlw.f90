@@ -20,7 +20,7 @@ module mlw
       double precision,intent(in) :: dt,dx
       integer :: i
       uun = 0.d0
-      do i = 2, ix-1
+      do i = 2, ix
       uun(i) = uu(i) - dt/dx * (ff(i) - ff(i-1))
       enddo
     end subroutine mlw1d2nd 

@@ -12,22 +12,22 @@ program main
   !======================================================================|
   IMPLICIT NONE
   character(len=100) :: formatoutdata,formatoutmessage,formatstopmessage
-  character(len=80) :: filename
-  character(len=30) :: filenum
   integer :: mfile
-  integer,parameter :: ix=1000
-  double precision :: x(0:ix),dx
-  double precision :: u(0:ix),um(0:ix),un(0:ix)
-  double precision :: f(0:ix),f0(0:ix)
+  integer,parameter :: margin = 1
+  integer,parameter :: grid_x = 3000
+  integer,parameter :: ix=2*margin+grid_x
+  double precision :: x(ix),dx
+  double precision :: u(ix),um(ix),un(ix)
+  double precision :: f(ix),f0(ix)
   double precision :: t,dt,tend
   integer :: ns, nd
   double precision :: tout,dtout
   double precision, parameter :: pi = 4 * atan(1.d0)
-  double precision :: rho(0:ix),rhom(0:ix),rhon(0:ix)
-  double precision :: vx(0:ix),vxm(0:ix),vxn(0:ix)
-  double precision :: p(0:ix),pm(0:ix),pn(0:ix)
-  double precision :: eps(0:ix),epsm(0:ix),epsn(0:ix)
-  double precision :: kappa(0:ix),qv
+  double precision :: rho(ix),rhom(ix),rhon(ix)
+  double precision :: vx(ix),vxm(ix),vxn(ix)
+  double precision :: p(ix),pm(ix),pn(ix)
+  double precision :: eps(ix),epsm(ix),epsn(ix)
+  double precision :: kappa(ix),qv
   double precision, parameter :: gamma = 1.4d0
   integer :: i
   !======================================================================|
@@ -66,7 +66,7 @@ program main
   call reset(ix)
 
   !   setup numerical model (grid, initial conditions, etc.)
-  call gridx(ix,dx,x)
+  call gridx(ix,margin,dx,x)
   call init_shocktube(ix,x,rho,p)
 
   !----------------------------------------------------------------------|
@@ -154,7 +154,7 @@ program main
   ! artificial viscosity
   !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-  qv=4.0d0
+  qv=5.0d0
 
   if(nd == 1) then
     call qv_param(qv)

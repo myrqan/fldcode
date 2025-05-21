@@ -19,25 +19,16 @@ program main
   integer,parameter :: gr_num_x=1000
   integer,parameter :: ix=2*margin+gr_num_x
 
-  !double precision :: x(0:ix),dx
   double precision :: x(ix),dx
-  !double precision :: s(0:ix), sm(0:ix)
   double precision :: s(ix),sm(ix)
-  !double precision :: u(0:ix),um(0:ix),un(0:ix),r(0:ix)
   double precision :: u(ix),um(ix),un(ix)
   double precision :: r(ix)
-  !double precision :: f(0:ix),f0(0:ix)
   double precision :: f(ix),f0(ix)
 
-  !double precision :: rho(0:ix),rhom(0:ix),rhon(0:ix)
   double precision :: rho(ix),rhom(ix),rhon(ix)
-  !double precision :: vx(0:ix),vxm(0:ix),vxn(0:ix)
   double precision :: vx(ix),vxm(ix),vxn(ix)
-  !double precision :: p(0:ix),pm(0:ix),pn(0:ix)
   double precision :: p(ix),pm(ix),pn(ix)
-  !double precision :: eps(0:ix),epsm(0:ix),epsn(0:ix)
   double precision :: eps(ix),epsm(ix),epsn(ix)
-  !double precision :: kappa(0:ix),qv
 
   double precision :: kappa(ix),qv
 
@@ -96,6 +87,13 @@ program main
   endif
   enddo
 
+  do i = 1, ix
+  s(i) = 1.d0
+  if (i < ix) then
+    sm(i) = 1.d0
+  endif
+  enddo
+
   !----------------------------------------------------------------------|
 
   call put1dreal(11,'x.dac',x)
@@ -122,6 +120,7 @@ program main
     !     time spacing
 
     dt = 3.d-4
+    ! ここから下は消す debug用
     dtout = dt
     tend = dt * 10.d0
     !----------------------------------------------------------------------|
@@ -134,18 +133,18 @@ program main
 
     eps = p / (gamma - 1.d0) + 0.5d0 * rho * vx**2
 
-    f0 = rho * vx * s
     u = rho * s
+    f0 = rho * vx * s
     call mlw1d1st(u,um,f0,ix,dt,dx)
     rhom = um / sm
 
-    f0 = (rho * vx**2 + p) * s
     u = rho * vx * s
+    f0 = (rho * vx**2 + p) * s
     call mlw1d1st(u,um,f0,ix,dt,dx)
     vxm = um / rhom / sm
 
-    f0 = (eps + p) * vx * s
     u = eps * s
+    f0 = (eps + p) * vx * s
     call mlw1d1st(u,um,f0,ix,dt,dx)
     epsm = um / sm
 
@@ -155,23 +154,22 @@ program main
 
     pm = (gamma-1.d0) * (epsm - 0.5d0 * rhom * vxm**2)
 
-    f = rhom*vxm*sm
     u = rho*s
+    f = rhom*vxm*sm
     call mlw1d2nd(u,un,f,ix,dt,dx)
     rhon = un/s
 
-    f = (rhom*vxm**2 + pm) * sm
     u = rho*vx * s
+    f = (rhom*vxm**2 + pm) * sm
     do i = 1, ix
     r(i) = p(i) * 2*x(i)
     enddo
-
     call mlw1d2nd(u,un,f,ix,dt,dx)
-    call mlw1dsrc(un,r,ix,dt,dx)
+    !call mlw1dsrc(un,r,ix,dt,dx)
     vxn = un/rhon/s
 
-    f = (epsm + pm) * vxm * sm
     u = eps * s
+    f = (epsm + pm) * vxm * sm
     call mlw1d2nd(u,un,f,ix,dt,dx)
     epsn = un / s
 
@@ -189,8 +187,8 @@ program main
     !----------------------------------------------------------------------|
     !     boundary condition
     call bnd1d_f_lr(rho,ix)
-    !call bnd1d_f_lr(vx,ix)
-    call bnd1d_fix_l(vx, ix)
+    call bnd1d_f_lr(vx,ix)
+    !call bnd1d_fix_l(vx, ix)
     call bnd1d_f_lr(eps,ix)
     call bnd1d_f_lr(p,ix)
 
@@ -228,8 +226,8 @@ program main
     !----------------------------------------------------------------------|
     !     boundary condition
     call bnd1d_f_lr(rho,ix)
-    !call bnd1d_f_lr(vx,ix)
-    call bnd1d_fix_l(vx,ix)
+    call bnd1d_f_lr(vx,ix)
+    !call bnd1d_fix_l(vx,ix)
     call bnd1d_f_lr(eps,ix)
     call bnd1d_f_lr(p,ix)
 
@@ -238,7 +236,7 @@ program main
     !     data output 
     if (t >= tout) then
 
-      call put0dreal(10,'t.dac',t)
+    call put0dreal(10,'t.dac',t)
     call put1dreal(15,'rho.dac',rho)
     call put1dreal(16,'vx.dac',vx)
     call put1dreal(17,'p.dac',p)
