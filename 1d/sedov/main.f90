@@ -16,7 +16,7 @@ program main
   integer,parameter :: margin = 1
   integer,parameter :: grid_x = 1024
   integer,parameter :: ix=2*margin+grid_x
-  double precision :: x(ix),dx
+  double precision :: x(ix),xm(ix),dx
   double precision :: u(ix),um(ix),un(ix)
   double precision :: r(ix),rm(ix),rn(ix)
   double precision :: f(ix),f0(ix)
@@ -71,8 +71,8 @@ program main
   call reset(ix)
 
   !   setup numerical model (grid, initial conditions, etc.)
-  call gridx(ix,margin,dx,x)
-  call init_shocktube(ix,x,rho,p)
+  call gridx(ix,margin,dx,x,xm)
+  !call init_shocktube(ix,x,rho,p)
   call init_sedov1d(ix,x,rho,p)
 
   do i = 1, ix
@@ -123,14 +123,15 @@ program main
   f0 = (rho * vx**2 + p) * s
   u = rho * vx * s
   r = p * 2.d0 * x
-  call mlw1d1st(u,um,f0,ix,dt,dx)
+  call mlw1d1st_wsrc(u,um,f0,r,ix,dt,dx)
+  !call mlw1d1st(u,um,f0,ix,dt,dx)
 
   ! CORRECTION
-  do i = 1, ix
-  r(i) = p(i) * 2.d0 * x(i)
-  rm(i) = pm(i) * 2.d0 * x(i)
-  enddo
-  call mlw1dsrc1st(um,r,rm,ix,dt,dx)
+  !do i = 1, ix
+  !r(i) = p(i) * 2.d0 * x(i)
+  !rm(i) = pm(i) * 2.d0 * x(i)
+  !enddo
+  !call mlw1dsrc1st(um,r,ix,dt,dx)
   vxm=um/rhom/sm
 
   pm = (gamma-1.d0) * (epsm - 0.5d0 * rhom * vxm**2)
@@ -165,10 +166,13 @@ program main
   ! CORRECTION
   do i = 1, ix
   ! SOURCE TERM
-  r(i) = p(i) * 2.d0 * x(i)
-  rn(i) = pn(i) * 2.d0 * x(i)
+  !r(i) = p(i) * 2.d0 * x(i)
+  rm(i) = pm(i) * 2.d0 * xm(i)
+  !rn(i) = pn(i) * 2.d0 * x(i)
   enddo
-  call mlw1dsrc2nd(un,r,rn,ix,dt,dx)
+  !call mlw1dsrc2nd(un,r,rn,ix,dt,dx)
+  !call mlw1dsrc2nd(un,rm,ix,dt,dx)
+  call mlw1d2nd_wsrc(u,un,f,rm,ix,dt,dx)
   vxn = un/rhon/s
 
   pn = (gamma - 1.d0) * (epsn - 0.5d0 * rhon * vxn**2)
