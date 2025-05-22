@@ -18,7 +18,7 @@ program main
   integer,parameter :: ix=2*margin+grid_x
   double precision :: x(ix),dx
   double precision :: u(ix),um(ix),un(ix)
-  double precision :: r(ix),rn(ix)
+  double precision :: r(ix),rm(ix),rn(ix)
   double precision :: f(ix),f0(ix)
   double precision :: t,dt,tend
   integer :: ns, nd
@@ -46,7 +46,7 @@ program main
 
   call init1d(x)
   call init1d(u); call init1d(um); call init1d(un)
-  call init1d(r); call init1d(rn)
+  call init1d(r); call init1d(rm); call init1d(rn)
   call init1d(f); call init1d(f0)
   call init1d(rho); call init1d(rhom); call init1d(rhon)
   call init1d(vx); call init1d(vxm); call init1d(rhon)
@@ -115,21 +115,33 @@ program main
   call mlw1d1st(u,um,f0,ix,dt,dx)
   rhom = um / sm
 
-  f0 = (rho * vx**2 + p) * s
-  u = rho * vx * s
-  call mlw1d1st(u,um,f0,ix,dt,dx)
-  vxm=um/rhom/sm
-
   f0 = (eps + p) * vx * s
   u = eps * s
   call mlw1d1st(u,um,f0,ix,dt,dx)
   epsm = um / sm
 
+  f0 = (rho * vx**2 + p) * s
+  u = rho * vx * s
+  r = p * 2.d0 * x
+  call mlw1d1st(u,um,f0,ix,dt,dx)
+
+  ! CORRECTION
+  do i = 1, ix
+  r(i) = p(i) * 2.d0 * x(i)
+  rm(i) = pm(i) * 2.d0 * x(i)
+  enddo
+  call mlw1dsrc1st(um,r,rm,ix,dt,dx)
+  vxm=um/rhom/sm
+
+  pm = (gamma-1.d0) * (epsm - 0.5d0 * rhom * vxm**2)
+
+
+
   !----------------------------------------------------------------------|
   ! SECOND STEP
   !----------------------------------------------------------------------|
 
-  pm = (gamma-1.d0) * (epsm - 0.5d0 * rhom * vxm**2)
+  !pm = (gamma-1.d0) * (epsm - 0.5d0 * rhom * vxm**2)
 
   ! MASS CONSERVATION
   f = rhom*vxm*sm
@@ -156,7 +168,7 @@ program main
   r(i) = p(i) * 2.d0 * x(i)
   rn(i) = pn(i) * 2.d0 * x(i)
   enddo
-  call mlw1dsrc(un,r,rn,ix,dt,dx)
+  call mlw1dsrc2nd(un,r,rn,ix,dt,dx)
   vxn = un/rhon/s
 
   pn = (gamma - 1.d0) * (epsn - 0.5d0 * rhon * vxn**2)
@@ -168,7 +180,6 @@ program main
   eps(:) = epsn(:)
   p(:) = pn(:)
 
-  t=t+dt
   !----------------------------------------------------------------------|
   !     boundary condition
   call bnd1d_f_lr(rho,ix)
@@ -216,6 +227,7 @@ program main
 
   !----------------------------------------------------------------------|
 
+  t=t+dt
   !     data output 
   if (t >= tout) then
 

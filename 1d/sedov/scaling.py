@@ -14,7 +14,7 @@ X = np.size(x)
 N = np.size(t)
 
 gam = 5./3
-xi0 = 1.08
+xi0 = 1.15
 
 ro0 = 1.0
 we = 0.10
@@ -22,7 +22,7 @@ enttl = (np.sqrt(np.pi)*we)**3/(gam-1)
 scl = np.zeros(N)
 
 for i in range (1, N):
-    scl[i] = xi0 * enttl**0.2 * t[i]**(0.35)
+    scl[i] = xi0 * enttl**0.2 * t[i]**(0.40)
 
 d_s = np.zeros(N)
 d_s[:] = np.nan

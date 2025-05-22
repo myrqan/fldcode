@@ -9,7 +9,7 @@ module mlw
       integer :: i
       uum(:) = 0.d0
       do i = 1, ix-1
-      uum(i) = 0.5d0 * (uu(i+1)+uu(i)) - 0.5d0*dt/dx * (ff(i+1)-ff(i))
+      uum(i) = 0.5d0 * (uu(i+1)+uu(i)) - 0.5d0 * dt/dx * (ff(i+1)-ff(i))
       enddo
     end subroutine mlw1d1st
 
@@ -25,7 +25,7 @@ module mlw
       enddo
     end subroutine mlw1d2nd 
 
-    subroutine mlw1dsrc(uu,ss,ssn,ix,dt,dx)
+    subroutine mlw1dsrc1st(uu,ss,ssn,ix,dt,dx)
       integer,intent(in) :: ix
       double precision,intent(in) :: ss(ix),ssn(ix)
       double precision,intent(in) :: dt,dx
@@ -34,8 +34,22 @@ module mlw
       integer :: i
       uun = 0.d0
       do i = 1, ix
-      uun(i) = uu(i) + 0.5d0 * (ss(i)+ssn(i)) * dt
+      uun(i) = uu(i) + 0.5d0 * dt * 0.5d0 *(ss(i)+ssn(i))
       enddo
       uu = uun
-    end subroutine mlw1dsrc
+    end subroutine mlw1dsrc1st
+
+    subroutine mlw1dsrc2nd(uu,ss,ssn,ix,dt,dx)
+      integer,intent(in) :: ix
+      double precision,intent(in) :: ss(ix),ssn(ix)
+      double precision,intent(in) :: dt,dx
+      double precision,intent(inout) :: uu(ix)
+      double precision :: uun(ix)
+      integer :: i
+      uun = 0.d0
+      do i = 1, ix
+      uun(i) = uu(i) + 0.5d0 * dt * 0.5d0 * (ss(i)+ssn(i))
+      enddo
+      uu = uun
+    end subroutine mlw1dsrc2nd
 end module mlw
