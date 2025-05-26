@@ -4,11 +4,15 @@
 
 ## 1d/は1次元計算
 - shocktube/は衝撃波管問題，これはうまくいってるはず．
+- shocktube2/は衝撃波管問題を，Rubin&Burstin(1967)で示されている，式(7)あるいは式(10)（でソース項ゼロとする）に従って計算を行った．
+
 
 ### to do
 - 1d/sedovを頑張る
 - $\partial u/\partial t + \partial F/\partial x = R(x, t)$のように右辺にsource termがある場合の取り扱いを考える．
-    - modified Lax-Wendroff法の文献を調査する．
+    - modified Lax-Wendroff法の文献を調査する．→Rubin&Burstein(1967)に従って計算を行う．
+    - CANSの計算方法と同じように，式(7)，式(10)を用いた計算で実行をしてみる．
+下の式は$t + dt/2$での値を求める方法で，これは，CANSでは用いられていない．
 ```math
 \frac{\partial u}{\partial t} + \frac{\partial F}{\partial x} = R(x, t)
 ```

@@ -48,7 +48,7 @@ module mlw
       integer :: i
       uun = 0.d0
       do i = 2, ix
-      uun(i) = uu(i) + 0.5d0 * dt * (ssm(i) + ssm(i-1))
+      uun(i) = uu(i) +  dt * ssm(i)
       enddo
       uu = uun
     end subroutine mlw1dsrc2nd
@@ -76,7 +76,8 @@ module mlw
       un = 0.d0
       do i = 2, ix
       un(i) = u(i) - dt/dx * (fm(i) - fm(i-1)) &
-        & + dt * 0.5d0 * (rm(i) + rm(i-1))
+        & + dt * rm(i)
+        !& + dt * 0.5d0 * (rm(i) + rm(i-1))
       enddo
     end subroutine mlw1d2nd_wsrc
 
