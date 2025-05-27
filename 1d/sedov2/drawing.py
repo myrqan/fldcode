@@ -10,6 +10,7 @@ p = read.read_1d('p.dac')
 #print(max(vx[0]))
 
 
+
 # for graphing
 fig = plt.figure(figsize=(10, 5))
 plt.rcParams['font.size']=12
@@ -19,7 +20,7 @@ plt.rcParams['mathtext.fontset']='stix'
 
 ax00 = fig.add_subplot(221)
 ax00.set_xlim(0,1.0)
-ax00.set_ylim(0,10)
+ax00.set_ylim(0,5)
 ##ax00.set_ylim(-0.2,1.2)
 ax00.set_title(r'Density')
 
@@ -32,7 +33,7 @@ ax01.set_title(r'Pressure')
 
 ax10 = fig.add_subplot(223)
 ax10.set_xlim(0,1.0)
-ax10.set_ylim(-0.05,0.20)
+ax10.set_ylim(-0.05,0.15)
 #ax10.set_ylim(-0.2,1.2)
 ax10.set_title(r'Velocity ($x$)')
 

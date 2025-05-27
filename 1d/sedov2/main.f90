@@ -15,24 +15,24 @@ program main
   character(len=100) :: formatoutdata,formatoutmessage,formatstopmessage
   integer :: mfile
   integer,parameter :: margin = 1
-  integer,parameter :: grid_x = 1024
+  integer,parameter :: grid_x = 1000
   integer,parameter :: ix=2*margin+grid_x
   double precision :: x(ix),xm(ix),dx
   double precision :: u(ix),um(ix),un(ix)
-  double precision :: r(ix),rm(ix),rmm(ix),rn(ix)
+  double precision :: r(ix),rm(ix),rn(ix)
   double precision :: f(ix),f0(ix),fm(ix)
   double precision :: t,dt,tend
   integer :: ns, nd
   double precision :: tout,dtout
   double precision, parameter :: pi = 4 * atan(1.d0)
-  double precision :: rho(ix),rhom(ix),rhomm(ix),rhon(ix)
-  double precision :: vx(ix),vxm(ix),vxmm(ix),vxn(ix)
-  double precision :: p(ix),pm(ix),pmm(ix),pn(ix)
-  double precision :: eps(ix),epsm(ix),epsmm(ix),epsn(ix)
-  double precision :: s(ix), sm(ix)
-  double precision :: rs(ix),rsm(ix),rsmm(ix),drs(ix)
-  double precision :: rvxs(ix),rvxsm(ix),rvxsmm(ix),drvxs(ix)
-  double precision :: es(ix),esm(ix),esmm(ix),des(ix)
+  double precision :: rho(ix),rhom(ix),rhon(ix)
+  double precision :: vx(ix),vxm(ix),vxn(ix)
+  double precision :: p(ix),pm(ix),pn(ix)
+  double precision :: eps(ix),epsm(ix),epsn(ix)
+  double precision :: s(ix), sm(ix), ds(ix), dsm(ix)
+  double precision :: rs(ix),rsm(ix),drs(ix)
+  double precision :: rvxs(ix),rvxsm(ix),drvxs(ix)
+  double precision :: es(ix),esm(ix),des(ix)
   double precision :: kappa(ix),qv
   double precision, parameter :: gamma = 5.d0/3.d0
 
@@ -48,15 +48,18 @@ program main
   !----------------------------------------------------------------------|
   !   initialize
 
-  call init1d(x)
+  call init1d(x); call init1d(xm)
   call init1d(u); call init1d(um); call init1d(un)
   call init1d(r); call init1d(rm); call init1d(rn)
   call init1d(f); call init1d(f0)
-  call init1d(rho); call init1d(rhom); call init1d(rhomm); call init1d(rhon)
-  call init1d(vx); call init1d(vxm); call init1d(vxmm); call init1d(rhon)
-  call init1d(p); call init1d(pm); call init1d(pmm); call init1d(pn)
-  call init1d(eps); call init1d(epsm); call init1d(epsmm); call init1d(epsn)
-  call init1d(s); call init1d(sm)
+  call init1d(rho); call init1d(rhom); call init1d(rhon)
+  call init1d(vx); call init1d(vxm); call init1d(rhon)
+  call init1d(p); call init1d(pm); call init1d(pn)
+  call init1d(eps); call init1d(epsm); call init1d(epsn)
+  call init1d(s); call init1d(sm); call init1d(ds); call init1d(dsm)
+  call init1d(rs); call init1d(rsm); call init1d(drs)
+  call init1d(rvxs); call init1d(rvxsm); call init1d(drvxs)
+  call init1d(es); call init1d(esm); call init1d(des)
   call init1d(kappa)
 
   !----------------------------------------------------------------------|
@@ -77,16 +80,33 @@ program main
   !   setup numerical model (grid, initial conditions, etc.)
   call gridx(ix,margin,dx,x,xm)
   !call init_shocktube(ix,x,rho,p)
-  call init_sedov1d(ix,x,rho,p)
+  call init_sedov1d(ix,x,rho,vx,p)
 
-  do i = 1, ix
-  s(i) = x(i)**2
-  if (i < ix) then
-    sm(i) = (0.5d0*(x(i) + x(i+1)))**2
-  endif
-  enddo
+  call cross_section(ix,s,sm,ds,dsm,x,xm,dx)
+
+ ! do i = 1, ix
+ ! s(i) = x(i)**2
+ ! if (i < ix) then
+ !   sm(i) = xm(i)**2
+ ! endif
+ ! enddo
+
+
+  !! boundary condition
+  call bnd1d_f_lr(rho,ix)
+  call bnd1d_fix_l(vx,ix)
+  call bnd1d_f_r(vx,ix)
+  call bnd1d_f_lr(p,ix)
+
+  call bnd1d_f_lr(s,ix)
+  call bnd1d_fix_l(ds,ix)
+  call bnd1d_f_r(ds,ix)
+
 
   !----------------------------------------------------------------------|
+  !! BINARY OUTPUT
+  ! calc eps
+  eps(:) = p(:)/(gamma-1.d0) + 0.5d0*rho(:)*vx(:)**2
 
   call put1dreal(11,'x.dac',x)
   call put0dreal(10,'t.dac',t)
@@ -111,70 +131,65 @@ program main
   !! temporary
 !  dtout =  10 * dt
 !  tend = 10 * dtout
-  !----------------------------------------------------------------------|
+  !---------------------------------------------------------------------|
   ! FIRST STEP
   !----------------------------------------------------------------------|
+  !eps(:) = p(:)/(gamma-1.d0) + 0.5d0*rho(:)*vx(:)**2
+  ! initialize d** 
+  CALL init1d(drs); CALL init1d(drvxs); CALL init1d(des)
 
-  eps = p / (gamma - 1.d0) + 0.5d0 * rho * vx**2
 
-
-
-  rs = rho*s
-  f0 = rho*vx*s
-  drs = 0.d0
-  r = 0.d0
+  rs(:) = rho(:)*s(:)
+  f0(:) = rho(:)*vx(:)*s(:)
+  !r(:) = 0.d0
   CALL mlw1d1st(rs,f0,rsm,drs,ix,dt,dx)
 
-  rvxs = rho*vx*s
-  f0 = (rho*vx**2+p)*s
-  drvxs = 0.d0
-  r = p*2.d0*x
+  rvxs(:) = rho(:)*vx(:)*s(:)
+  f0(:) = (rho(:)*vx(:)**2+p(:))*s(:)
+  r(:) = p(:)*ds(:)
   CALL mlw1d1st(rvxs,f0,rvxsm,drvxs,ix,dt,dx)
   CALL mlw1dsrc1st(rvxsm,drvxs,r,ix,dt)
 
-  es = eps*s
-  f0 = (eps+p)*vx*s
-  des = 0.d0
-  r = 0.d0
+  es(:) = eps(:)*s(:)
+  f0(:) = (eps(:)+p(:))*vx(:)*s(:)
+  !r(:) = 0.d0
   call mlw1d1st(es,f0,esm,des,ix,dt,dx)
 
-  rhom = rsm/sm
-  vxm = rvxsm/rhom/sm
-  epsm = esm/sm
+  rhom(:) = rsm(:)/sm(:)
+  vxm(:) = rvxsm(:)/rhom(:)/sm(:)
+  epsm(:) = esm(:)/sm(:)
 
-  pm = (gamma-1.d0) * (epsm - 0.5d0 * rhom * vxm**2 )
-
+  pm(:) = (gamma-1.d0) * (epsm(:)-0.5d0*rhom(:)*vxm(:)**2)
 
 
   !----------------------------------------------------------------------|
   ! SECOND STEP
   !----------------------------------------------------------------------|
-  
 
-  fm = rhom*vxm*sm
+  fm(:) = rhom(:)*vxm(:)*sm(:)
   CALL mlw1d2nd(fm,drs,ix,dt,dx)
 
-  fm = (rhom*vxm**2+pm)*sm
-  rm = pm*2.d0*xm
+  fm(:) = (rhom(:)*vxm(:)**2+pm(:))*sm(:)
+  rm(:) = pm(:)*ds(:)
   CALL mlw1d2nd(fm,drvxs,ix,dt,dx)
   CALL mlw1dsrc2nd(drvxs,rm,ix,dt)
 
-  fm = (epsm+pm)*vxm*sm
+  fm(:) = (epsm(:)+pm(:))*vxm(:)*sm(:)
   CALL mlw1d2nd(fm,des,ix,dt,dx)
 
-  rs = rs+drs
-  rvxs = rvxs + drvxs
-  es = es + des
+  rs(:) = rs(:)+drs(:)
+  rvxs(:) = rvxs(:) + drvxs(:)
+  es(:) = es(:) + des(:)
 
-  rhon = rs/s
-  vxn = rvxs/rhon/s
-  epsn = es/s
+  rhon(:) = rs(:)/s(:)
+  vxn(:) = rvxs(:)/rhon(:)/s(:)
+  epsn(:) = es(:)/s(:)
 
-  pn = (gamma - 1.d0) * (epsn - 0.5d0 * rhon * vxn**2)
+  pn(:) = (gamma - 1.d0) * (epsn(:) - 0.5d0*rhon(:)*vxn(:)**2)
 
   !----------------------------------------------------------------------|
   !     update
-  rho = rhon; vx = vxn; eps = epsn; p = pn
+  rho(:) = rhon(:); vx(:) = vxn(:); eps(:) = epsn(:); p(:) = pn(:)
 
   !----------------------------------------------------------------------|
   !     boundary condition
@@ -189,7 +204,7 @@ program main
   ! artificial viscosity
   !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-  qv=3.0d0
+  qv=3.d0
 
   if(nd == 1) then
     call qv_param(qv)
@@ -197,22 +212,22 @@ program main
 
   call calc_coef_k(qv,kappa,vx,ix,dx)
 
-  u=rho*s
+  u=rho(:)*s(:)
   call arvis1d(kappa,u,um,ix,dt,dx)
-  rhom=um/s
+  rhom(:)=um(:)/s(:)
 
-  u = rho*vx*s
+  u(:) = rho(:)*vx(:)*s(:)
   call arvis1d(kappa,u,um,ix,dt,dx)
-  vxm = um/rhom/s
+  vxm(:) = um(:)/rhom(:)/s(:)
 
-  u = eps*s
+  u(:) = eps(:)*s(:)
   call arvis1d(kappa,u,um,ix,dt,dx)
-  epsm = um/s
+  epsm(:) = um(:)/s(:)
 
   ! update
-  rho=rhom
-  vx=vxm
-  eps = epsm
+  rho(:)=rhom(:)
+  vx(:)=vxm(:)
+  eps(:) = epsm(:)
 
   !----------------------------------------------------------------------|
   !     boundary condition

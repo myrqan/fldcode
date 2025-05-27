@@ -7,7 +7,7 @@ module arvis
       integer,intent(in) :: ix
       integer :: i
       do i = 1, ix
-      k(i) = qv*dx*dmax1(abs(vvx(i+1)-vvx(i))-1.0d-4,0.d0)
+      k(i) = qv*dx*dmax1(abs(vvx(i+1)-vvx(i))-1.0d-4, 0.d0)
       enddo
     end subroutine calc_coef_k
 
@@ -19,8 +19,8 @@ module arvis
       uum = 0.d0
       do i = 2, ix-1
       uum(i) = uu(i) + dt/dx * &
-        & (k(i)/dx * (uu(i+1)-uu(i)) &
-        & -k(i-1)/dx * (uu(i) - uu(i-1))) 
+         (k(i)/dx * (uu(i+1)-uu(i)) &
+         -k(i-1)/dx * (uu(i) - uu(i-1))) 
       enddo
     end subroutine arvis1d
 end module arvis

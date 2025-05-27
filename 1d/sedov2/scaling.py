@@ -14,7 +14,8 @@ X = np.size(x)
 N = np.size(t)
 
 gam = 5.0/3.0
-xi0 = 1.08
+#xi0 = 1.08
+xi0=1.15
 
 ro0 = 1.0
 we = 0.1
@@ -22,7 +23,8 @@ enttl = (np.sqrt(np.pi)*we)**3/(gam-1)
 scl = np.zeros(N)
 
 for i in range (1, N):
-    scl[i] = xi0 * enttl**0.2 * t[i]**(0.35)
+    #scl[i] = xi0 * enttl**0.2 * t[i]**(0.35)
+    scl[i] = xi0 * enttl**0.2 * t[i]**(0.40)
 
 d_s = np.zeros(N)
 d_s[:] = np.nan
@@ -58,8 +60,8 @@ def plotr():
     ax00 = fig.add_subplot(221)
     ax00.set_xlim(0.0, 1.2)
     ax00.set_title(r'$\rho$, (density) scaled')
-    for n in range(1, N, 2):
-        if n == 1:
+    for n in range(0,N,4):
+        if n == 0:
             continue
         time = Decimal(str(t[n])).quantize(Decimal('0.01'),ROUND_HALF_UP)
         ax00.plot(lam[n], sc_ro[n], label=(r'$t=$'+str(time)))
@@ -74,8 +76,8 @@ def plotv():
     plt.xlim(0.0, 1.2)
     plt.title(r'$v_r$, (velocity) scaled')
     plt.ylim(0,1.2)
-    for n in range(1, N, 2):
-        if n == 1:
+    for n in range(0,N,4):
+        if n == 0:
             continue
         time = Decimal(str(t[n])).quantize(Decimal('0.01'),ROUND_HALF_UP)
         ax01.plot(lam[n], sc_vx[n], label=(r'$t=$'+str(time)))
@@ -91,8 +93,8 @@ def plotp():
     plt.title(r'$P_r$, (pressure) scaled')
     #plt.yscale('log')
     plt.ylim(0,1.2)
-    for n in range(1, N, 2):
-        if n == 1:
+    for n in range(0, N, 4):
+        if n == 0:
             continue
         time = Decimal(str(t[n])).quantize(Decimal('0.01'),ROUND_HALF_UP)
         ax02.plot(lam[n], sc_pr[n], label=(r'$t=$'+str(time)))
@@ -105,7 +107,7 @@ def plotp():
 def plotrvp():
     ax03 = fig.add_subplot(224)
     plt.xlim(0.0, 1)
-    plt.title("all")
+    #plt.title("all")
     #plt.title(r'$P_r$, (pressure) scaled')
     #plt.yscale('log')
     plt.ylim(0,1)
@@ -113,7 +115,7 @@ def plotrvp():
         if n == 1:
             continue
         time = Decimal(str(t[n])).quantize(Decimal('0.01'),ROUND_HALF_UP)
-        ax03.set_title("t="+str(time))
+        ax03.set_title(r"$t=$"+str(time))
         ax03.plot(lam[n], sc_pr[n], label="pressure")
         ax03.plot(lam[n], sc_ro[n], label="density")
         ax03.plot(lam[n], sc_vx[n], label="velocoty")
@@ -132,6 +134,6 @@ plotrvp()
 plt.tight_layout()
 #plt.show()
 
-plt.savefig('fig/scaled.png',dpi=1000,bbox_inches='tight')
+plt.savefig('fig/scaled.png',dpi=300,bbox_inches='tight')
 
 exit()
