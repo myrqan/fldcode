@@ -20,23 +20,23 @@ plt.rcParams['mathtext.fontset']='stix'
 ax00 = fig.add_subplot(221)
 ax00.set_xlim(0,1.0)
 ax00.set_ylim(0,10)
+##ax00.set_ylim(-0.2,1.2)
 ax00.set_title(r'Density')
 
 ax01 = fig.add_subplot(222)
 ax01.set_xlim(0,1.0)
-#ax01.set_ylim(0,3)
+#ax01.set_ylim(-0.2,1.2)
 ax01.set_ylim(1e-4,1)
 ax01.set_yscale('log')
 ax01.set_title(r'Pressure')
 
 ax10 = fig.add_subplot(223)
-#ax10.set_xlim(0,1.0)
-ax10.set_xlim(0,0.2)
+ax10.set_xlim(0,1.0)
 ax10.set_ylim(-0.05,0.20)
-#ax10.set_ylim(0,1)
+#ax10.set_ylim(-0.2,1.2)
 ax10.set_title(r'Velocity ($x$)')
 
-for i in range(0,np.size(t)-1, 1):
+for i in range(0,np.size(t)-1,2):
     if (i==1):
         continue
     lb = r'$t=$'+str(t[i])[:4]
@@ -45,9 +45,9 @@ for i in range(0,np.size(t)-1, 1):
     ax01.plot(x, p[i],label=lb)
     ax10.plot(x, vx[i],label=lb)
 
-#ax00.legend(loc='upper left', bbox_to_anchor=(1,1))
-#ax01.legend(loc='upper left', bbox_to_anchor=(1,1))
-#ax10.legend(loc='upper left', bbox_to_anchor=(1,1))
+ax00.legend(loc='upper left', bbox_to_anchor=(1,1))
+ax01.legend(loc='upper left', bbox_to_anchor=(1,1))
+ax10.legend(loc='upper left', bbox_to_anchor=(1,1))
 
 plt.tight_layout()
 

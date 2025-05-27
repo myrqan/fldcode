@@ -7,6 +7,7 @@ program main
   use mlw
   use boundary
   use arvis
+  use cfl
   !======================================================================|
   !     array definitions
   !======================================================================|
@@ -14,7 +15,7 @@ program main
   character(len=100) :: formatoutdata,formatoutmessage,formatstopmessage
   integer :: mfile
   integer,parameter :: margin = 1
-  integer,parameter :: grid_x = 2048
+  integer,parameter :: grid_x = 1024
   integer,parameter :: ix=2*margin+grid_x
   double precision :: x(ix),xm(ix),dx
   double precision :: u(ix),um(ix),un(ix)
@@ -51,17 +52,17 @@ program main
   call init1d(u); call init1d(um); call init1d(un)
   call init1d(r); call init1d(rm); call init1d(rn)
   call init1d(f); call init1d(f0)
-  call init1d(rho); call init1d(rhom); call init1d(rhon)
-  call init1d(vx); call init1d(vxm); call init1d(rhon)
-  call init1d(p); call init1d(pm); call init1d(pn)
-  call init1d(eps); call init1d(epsm); call init1d(epsn)
+  call init1d(rho); call init1d(rhom); call init1d(rhomm); call init1d(rhon)
+  call init1d(vx); call init1d(vxm); call init1d(vxmm); call init1d(rhon)
+  call init1d(p); call init1d(pm); call init1d(pmm); call init1d(pn)
+  call init1d(eps); call init1d(epsm); call init1d(epsmm); call init1d(epsn)
   call init1d(s); call init1d(sm)
   call init1d(kappa)
 
   !----------------------------------------------------------------------|
   !   time control parameters
-  tend=0.6d1  ! time for end of calculation
-  dtout=0.1d1 ! time spacing for data output
+  tend=6.d0  ! time for end of calculation
+  dtout=0.5d0! time spacing for data output
   !----------------------------------------------------------------------|
   !  initialize counters
   t=0.d0
@@ -93,6 +94,9 @@ program main
   call put1dreal(16,'vx.dac',vx)
   call put1dreal(17,'p.dac',p)
   call put1dreal(18,'eps.dac',eps)
+  write(*,formatoutmessage) ns,t,nd
+  tout = tout + dtout
+  nd = nd + 1
 
   !======================================================================|
   !     time integration 
@@ -102,14 +106,11 @@ program main
   !----------------------------------------------------------------------|
   !     time spacing
 
-  dt = 1.d-4
+  !dt = 0.5d-4
+  CALL calc_dt(rho,vx,p,gamma,ix,dt,dx)
   !! temporary
-  dtout = 2 * dt
-  tend = 20 * dtout
-  !----------------------------------------------------------------------|
-  !     solve difference equations
-  !     by two-step Lax-Wendroff scheme
-
+!  dtout =  10 * dt
+!  tend = 10 * dtout
   !----------------------------------------------------------------------|
   ! FIRST STEP
   !----------------------------------------------------------------------|
@@ -117,47 +118,49 @@ program main
   eps = p / (gamma - 1.d0) + 0.5d0 * rho * vx**2
 
 
+
   rs = rho*s
   f0 = rho*vx*s
-  drs  = 0.d0
+  drs = 0.d0
   r = 0.d0
-  call mlw1dsrc1st(rs,f0,rsm,rsmm,drs,r,ix,dt,dx)
+  CALL mlw1d1st(rs,f0,rsm,drs,ix,dt,dx)
 
   rvxs = rho*vx*s
-  f0 = (rho+vx**2+p)*s
+  f0 = (rho*vx**2+p)*s
   drvxs = 0.d0
   r = p*2.d0*x
-  call mlw1dsrc1st(rvxs,f0,rvxsm,rvxsmm,drvxs,r,ix,dt,dx)
+  CALL mlw1d1st(rvxs,f0,rvxsm,drvxs,ix,dt,dx)
+  CALL mlw1dsrc1st(rvxsm,drvxs,r,ix,dt)
 
   es = eps*s
   f0 = (eps+p)*vx*s
   des = 0.d0
   r = 0.d0
-  call mlw1dsrc1st(es,f0,esm,esmm,des,r,ix,dt,dx)
+  call mlw1d1st(es,f0,esm,des,ix,dt,dx)
 
-  rhom = rsm/sm; rhomm = rsmm/s
-  vxm = rvxsm/rhom/sm; vxmm = rvxsmm/rhomm/s
-  epsm = esm/sm; epsmm = esmm/s
+  rhom = rsm/sm
+  vxm = rvxsm/rhom/sm
+  epsm = esm/sm
 
   pm = (gamma-1.d0) * (epsm - 0.5d0 * rhom * vxm**2 )
-  pmm= (gamma-1.d0) * (epsmm- 0.5d0 * rhomm* vxmm**2)
+
 
 
   !----------------------------------------------------------------------|
   ! SECOND STEP
   !----------------------------------------------------------------------|
-   
+  
+
   fm = rhom*vxm*sm
-  rmm = 0.d0
-  call mlw1dsrc2nd(fm,drs,rmm,ix,dt,dx)
+  CALL mlw1d2nd(fm,drs,ix,dt,dx)
 
   fm = (rhom*vxm**2+pm)*sm
-  rmm = pmm*2.d0*s
-  call mlw1dsrc2nd(fm,drvxs,rmm,ix,dt,dx)
+  rm = pm*2.d0*xm
+  CALL mlw1d2nd(fm,drvxs,ix,dt,dx)
+  CALL mlw1dsrc2nd(drvxs,rm,ix,dt)
 
   fm = (epsm+pm)*vxm*sm
-  rmm = 0.d0
-  call mlw1dsrc2nd(fm,des,rmm,ix,dt,dx)
+  CALL mlw1d2nd(fm,des,ix,dt,dx)
 
   rs = rs+drs
   rvxs = rvxs + drvxs
@@ -186,7 +189,7 @@ program main
   ! artificial viscosity
   !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-  qv=1.0d0
+  qv=3.0d0
 
   if(nd == 1) then
     call qv_param(qv)
@@ -207,15 +210,16 @@ program main
   epsm = um/s
 
   ! update
-  rho(:)=rhom(:)
-  vx(:)=vxm(:)
-  eps(:) = epsm(:)
+  rho=rhom
+  vx=vxm
+  eps = epsm
 
   !----------------------------------------------------------------------|
   !     boundary condition
   call bnd1d_f_lr(rho,ix)
   call bnd1d_fix_l(vx,ix)
   call bnd1d_f_r(vx,ix)
+  !call bnd1d_f_lr(vx,ix)
   call bnd1d_f_lr(eps,ix)
 
   !----------------------------------------------------------------------|
@@ -223,6 +227,7 @@ program main
   t=t+dt
   !     data output 
   if (t >= tout) then
+
 
     call put0dreal(10,'t.dac',t)
     call put1dreal(15,'rho.dac',rho)

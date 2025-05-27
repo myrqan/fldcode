@@ -23,7 +23,8 @@ module initial_condition
       integer :: i, iix
       iix = ix - 2*margin
       dx = 1.d0 / dble(iix)
-      x(1) = dx 
+      !x(1) = 2*dx
+      x(1) = 0.04d0
       do i = 1, ix-1
         x(i+1) = x(i) + dx
         xm(i) = 0.5d0 * (x(i+1) + x(i))
