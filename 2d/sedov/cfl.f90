@@ -1,17 +1,22 @@
 module cfl
   implicit none
   contains
-    subroutine calc_dt(rho,vx,p,gm,ix,dt,dx)
-      integer,intent(in) :: ix
-      double precision,intent(in) :: rho(ix),vx(ix),p(ix)
-      double precision,intent(in) :: gm,dx
+    subroutine calc_dt(rho,vx,vz,p,gm,ix,jx,dt,dx,dz)
+      integer,intent(in) :: ix,jx
+      double precision,intent(in) :: rho(ix,jx),vx(ix,jx),vz(ix,jx),p(ix,jx)
+      double precision,intent(in) :: gm,dx,dz
       double precision,intent(inout) :: dt
-      double precision :: dt_cfl(ix), safety = 0.4d0
-      INTEGER :: j
-      dt_cfl = 1e20
-      do j = 2, ix-1
-      dt_cfl(j) = dx / (abs(vx(j)) + sqrt(gm*p(j)/rho(j)))
+      double precision :: dt_cfl,safety = 0.4d0
+      DOUBLE PRECISION :: min_val
+      INTEGER :: i,j
+      min_val = 1e20
+      do i = 2, ix-1
+      do j = 2, jx-1
+        dt_cfl = min(dx,dz) / sqrt(vx(i,j)**2+vz(i,j)**2 + gm*p(i,j)/rho(i,j))
+        min_val = MIN(min_val,dt_cfl)
       enddo
-      dt = safety * MINVAL(dt_cfl)
+      enddo
+      dt = safety * min_val
     end subroutine calc_dt
 end module cfl
+
