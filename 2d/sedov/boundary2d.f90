@@ -14,7 +14,7 @@ module boundary2d
     subroutine bc_free_r(ary,ix,jx)
       INTEGER,INTENT(IN)::ix,jx
       DOUBLE PRECISION,INTENT(OUT)::ary(ix,jx)
-      ary(ix-1,:)=ary(ix,:)
+      ary(ix,:)=ary(ix-1,:)
     end subroutine bc_free_r
 
     subroutine bc_free_u(ary,ix,jx)

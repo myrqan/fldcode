@@ -87,5 +87,14 @@ contains
     close(device_num)
     
   end subroutine put2dreal
+
+  subroutine put1dint(device_num, filename,ary)
+    INTEGER,INTENT(IN)::device_num
+    CHARACTER(*),INTENT(IN)::filename
+    INTEGER,INTENT(IN)::ary(:)
+    OPEN(device_num,file=filename,form='unformatted',position='append')
+    write(device_num) ary
+    close(device_num)
+  end subroutine put1dint
   
 end module file_output

@@ -9,10 +9,46 @@ import read
 #p = read.read_1d('p.dac')
 #print(max(vx[0]))
 
+ixjx = read.read_grid2d('ixjx.dac')
+ix = ixjx[0]
+jx = ixjx[1]
 t = read.read_t('t.dac')
-x = read.read_x('x.dac')
-z = read.read_x('z.dac')
+x = read.read_x2d('x.dac',ix,jx)
+z = read.read_x2d('z.dac',ix,jx)
+ro= read.read_phys2d('rho.dac',ix,jx)
+vx= read.read_phys2d('vx.dac',ix,jx)
+vz= read.read_phys2d('vz.dac',ix,jx)
+pr= read.read_phys2d('p.dac',ix,jx)
 
+#for n in range(2):
+#    for i in range(ix):
+#        for j in range(jx):
+#            print(ro[n][i][j], end=' ')
+#        print()
+#    print()
+#
+#exit()
+
+print('x=')
+print(x)
+print('z=')
+print(z)
+print()
+
+#print(x)
+#print(z)
+for n in range(10):
+    print(pr[n])
+#n = 1
+#exit()
+
+#print(t[:])
+#for n in range(7,8):
+#    for i in range(0,4):
+#        for j in range(0,4):
+#            print(pr[n][i][j],end=' ')
+#        print()
+#exit()
 
 
 # for graphing
@@ -22,12 +58,19 @@ plt.rcParams['font.family']='STIXGeneral'
 plt.rcParams['mathtext.fontset']='stix'
 
 
-ax00 = fig.add_subplot(221)
-ax00.set_xlim(0,1.0)
-ax00.set_ylim(0,5)
+ax00 = fig.add_subplot(111,projection='3d')
+#ax00.set_xlim(0,1.0)
+#ax00.set_ylim(0,5)
 ##ax00.set_ylim(-0.2,1.2)
+#ax00.set_zlim(0,1.2)
+ax00.set_zlim(1e-4,1)
+ax00.set_zscale('log')
 ax00.set_title(r'Density')
+n = 0
+ax00.plot_surface(x,z,pr[0])
+plt.show()
 
+exit()
 ax01 = fig.add_subplot(222)
 ax01.set_xlim(0,1.0)
 #ax01.set_ylim(-0.2,1.2)

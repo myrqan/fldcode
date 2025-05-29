@@ -24,7 +24,7 @@ module initial_condition
       double precision :: xmin
       iix = ix - 2*margin
       dx = 1.d0 / dble(iix)
-      !xmin = 0.04d0
+      !xmin = 0.02d0
       xmin = dx
       !x(1) = 2*dx
       x(1) = xmin - 0.5d0 * dx

@@ -25,8 +25,8 @@ module arvis
       double precision,intent(inout) :: du(ix,jx)
       integer :: i,j
       !du(:,:)=0.d0
-      do j=2,jx-1
-      do i=2,ix-1
+      do j=2,jx
+      do i=2,ix
          du(i,j)=du(i,j) &
                   +dt/dx* ((kx(i  ,j)/dx * (u(i+1,j)-u(i,  j))&
                           - kx(i-1,j)/dx * (u(i  ,j)-u(i-1,j))))&

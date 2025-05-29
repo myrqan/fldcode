@@ -19,6 +19,7 @@ program main
   integer,parameter :: grid_z = 100
   integer,parameter :: ix=2*margin+grid_x
   integer,parameter :: jx=2*margin+grid_z
+  integer::grid_ary(2)
   double precision :: x(ix,jx),xm(ix,jx),dx
   double precision :: z(ix,jx),zm(ix,jx),dz
 
@@ -109,13 +110,16 @@ program main
   call bc_free_b(p,ix,jx); call bc_free_u(p,ix,jx)
   call bc_free_l(p,ix,jx); call bc_free_r(p,ix,jx)
 
-dtout = 0.d0
+!dtout = 0.d0
   !----------------------------------------------------------------------|
   !! BINARY OUTPUT
   ! calc eps
   eps(:,:) = p(:,:)/(gamma-1.d0) + 0.5d0*rho(:,:)*(vx(:,:)**2+vz(:,:)**2)
 
+  grid_ary(1)=ix;grid_ary(2)=jx
+  CALL put1dint(9,'ixjx.dac',grid_ary)
   call put2dreal(11,'x.dac',x)
+  call put2dreal(12,'z.dac',z)
   call put0dreal(10,'t.dac',t)
   call put2dreal(16,'vx.dac',vx)
   call put2dreal(17,'vz.dac',vx)
@@ -123,7 +127,7 @@ dtout = 0.d0
   call put2dreal(21,'p.dac',p)
   call put2dreal(22,'eps.dac',eps)
   write(*,formatoutmessage) ns,t,nd
-  tout = tout + dtout
+  !tout = tout + dtout
   nd = nd + 1
 
 
@@ -131,17 +135,21 @@ dtout = 0.d0
   !======================================================================|
   !     time integration 
   !======================================================================|
+
   do while (t < tend)
+  !DO WHILE (ns < 10)
   ns=ns+1
   !----------------------------------------------------------------------|
   !     time spacing
 
-  dt = 0.5d-4
-  !CALL calc_dt(rho,vx,vz,p,gamma,ix,jx,dt,dx,dz)
+  !dt = 0.5d-4
+  CALL calc_dt(rho,vx,vz,p,gamma,ix,jx,dt,dx,dz)
   !! temporary
-
-  dtout =  dt
-  tend = 10 * dtout
+  if(ns == 1) then
+    tout = tout + dt ! うえのやつ
+    dtout =  dt
+    tend = 10 * dtout
+  endif
   !---------------------------------------------------------------------|
   ! FIRST STEP
   !----------------------------------------------------------------------|
@@ -157,24 +165,24 @@ dtout = 0.d0
   CALL mlw2d1st(ro,fx,fz,ron,dro,ix,jx,dt,dx,dz)
   CALL mlw2dsrc1st(r,ron,dro,ix,jx,dt,dx,dz)
 
-  rvx(:,:)=rho(:,:)*vx(:,:)
-  fx(:,:)=rho(:,:)*vx(:,:)**2+p(:,:)
-  fz(:,:)=rho(:,:)*vx(:,:)*vz(:,:)
-  r(:,:)=-rho(:,:)*vx(:,:)**2/x(:,:)
+  rvx(:,:)= rho(:,:)*vx(:,:)
+  fx(:,:) = rho(:,:)*vx(:,:)**2 + p(:,:)
+  fz(:,:) = rho(:,:)*vx(:,:)*vz(:,:)
+  r(:,:)  =-rho(:,:)*vx(:,:)**2/x(:,:)
   CALL mlw2d1st(rvx,fx,fz,rvxn,drvx,ix,jx,dt,dx,dz)
   CALL mlw2dsrc1st(r,rvxn,drvx,ix,jx,dt,dx,dz)
 
-  rvz(:,:)=rho(:,:)*vz(:,:)
-  fx(:,:)=rho(:,:)*vx(:,:)*vz(:,:)
-  fz(:,:)=rho(:,:)*vz(:,:)**2+p(:,:)
-  r(:,:)=-rho(:,:)*vx(:,:)*vz(:,:)/x(:,:)
+  rvz(:,:)= rho(:,:)        *vz(:,:)
+  fx(:,:) = rho(:,:)*vx(:,:)*vz(:,:)
+  fz(:,:) = rho(:,:)*vz(:,:)**2 + p(:,:)
+  r(:,:)  =-rho(:,:)*vx(:,:)*vz(:,:)/x(:,:)
   CALL mlw2d1st(rvz,fx,fz,rvzn,drvz,ix,jx,dt,dx,dz)
   CALL mlw2dsrc1st(r,rvzn,drvz,ix,jx,dt,dx,dz)
 
-  e(:,:)=eps(:,:)
-  fx(:,:)=(eps(:,:)+p(:,:))*vx(:,:)
-  fz(:,:)=(eps(:,:)+p(:,:))*vz(:,:)
-  r(:,:)=-(eps(:,:)+p(:,:))*vx(:,:)/x(:,:)
+  e(:,:)  =  eps(:,:)
+  fx(:,:) = (eps(:,:)+p(:,:))*vx(:,:)
+  fz(:,:) = (eps(:,:)+p(:,:))*vz(:,:)
+  r(:,:)  =-(eps(:,:)+p(:,:))*vx(:,:)/x(:,:)
   CALL mlw2d1st(e,fx,fz,en,de,ix,jx,dt,dx,dz)
   CALL mlw2dsrc1st(r,en,de,ix,jx,dt,dx,dz)
 
@@ -186,6 +194,13 @@ dtout = 0.d0
 
 
   pn(:,:) = (gamma-1.d0) * (epsn(:,:)-0.5d0*rhon(:,:)*(vxn(:,:)**2+vzn(:,:)**2))
+
+
+    !call put2dreal(16,'vx.dac',vxn)
+    !call put2dreal(17,'vz.dac',vzn)
+    !call put2dreal(20,'rho.dac',ron)
+    !call put2dreal(21,'p.dac',pn)
+    !call put2dreal(22,'eps.dac',epsn)
 
   !----------------------------------------------------------------------|
   ! SECOND STEP

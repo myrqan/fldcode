@@ -118,7 +118,7 @@ def plotrvp():
         ax03.set_title(r"$t=$"+str(time))
         ax03.plot(lam[n], sc_pr[n], label="pressure")
         ax03.plot(lam[n], sc_ro[n], label="density")
-        ax03.plot(lam[n], sc_vx[n], label="velocoty")
+        ax03.plot(lam[n], sc_vx[n], label="velocity")
     ax03.legend(loc='upper left', bbox_to_anchor=(1,1))
     #plt.savefig('fig/pr_scaled.png',dpi=300,bbox_inches='tight')
     #plt.cla()
@@ -132,8 +132,8 @@ plotrvp()
 
 
 plt.tight_layout()
-#plt.show()
+plt.show()
 
-plt.savefig('fig/scaled.png',dpi=300,bbox_inches='tight')
+#plt.savefig('fig/scaled.png',dpi=300,bbox_inches='tight')
 
 exit()
