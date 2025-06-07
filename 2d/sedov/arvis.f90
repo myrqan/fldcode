@@ -6,15 +6,11 @@ module arvis
       double precision,intent(inout) :: kx(ix,jx), kz(ix,jx)
       integer,intent(in) :: ix,jx
       integer :: i,j
-      do j = 1,jx
-      do i = 1,ix
-         !qx(i,j)=qav*dxm(i)*max(zero,abs(vx(i+1,j)-vx(i,j))-1.0e-4)
-         if(i < ix) then
-          kx(i,j) = qv*dx*max(abs(vx(i+1,j)-vx(i,j))-1.0d-4,0.d0)
-        endif
-        if(j < jx) then
-          kz(i,j) = qv*dz*max(abs(vz(i,j+1)-vz(i,j))-1.0d-4,0.d0)
-        endif
+      do j = 1,jx-1
+      do i = 1,ix-1
+       !qx(i,j)=qav*dxm(i)*max(zero,abs(vx(i+1,j)-vx(i,j))-1.0e-4)
+        kx(i,j) = qv*dx*max(abs(vx(i+1,j)-vx(i,j))-1.0d-4,0.d0)
+        kz(i,j) = qv*dz*max(abs(vz(i,j+1)-vz(i,j))-1.0d-4,0.d0)
       enddo
       enddo
     end subroutine calc_coef_k

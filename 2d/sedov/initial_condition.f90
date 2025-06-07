@@ -33,8 +33,8 @@ module initial_condition
       jjx = jx - 2*margin
       dx = 1.d0 / dble(iix)
       dz = 1.d0 / dble(jjx)
-      xmin = 0.04d0
-      zmin = 0.04d0
+      xmin = 0.04d0 ! 0.04d0
+      zmin = dz ! 0.04d0
       !xmin = dx
       !x(1) = 2*dx
       x(1,:) = xmin - 0.5d0 * dx
@@ -43,10 +43,10 @@ module initial_condition
       zm(:,1) = zmin
       do j = 1, jx
       do i = 1, ix
-      if(i>1) then
+      if (i>1) then
         x(i,j) = x(i-1, j) + dx
       endif
-      if(j>1)then
+      if (j>1) then
         z(i,j) = z(i, j-1) + dz
       endif
         xm(i,j) = x(i,j) + 0.5d0 * dx

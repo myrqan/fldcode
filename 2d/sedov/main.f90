@@ -8,6 +8,8 @@ program main
   use boundary2d
   use arvis
   use cfl
+
+  use, intrinsic :: IEEE_ARITHMETIC, only: IEEE_IS_NAN
   !======================================================================|
   !     array definitions
   !======================================================================|
@@ -15,8 +17,8 @@ program main
   character(len=100) :: formatoutdata,formatoutmessage,formatstopmessage
   integer :: mfile
   integer,parameter :: margin = 1
-  integer,parameter :: grid_x = 100
-  integer,parameter :: grid_z = 100
+  integer,parameter :: grid_x = 300
+  integer,parameter :: grid_z = 300
   integer,parameter :: ix=2*margin+grid_x
   integer,parameter :: jx=2*margin+grid_z
   integer::grid_ary(2)
@@ -55,7 +57,7 @@ program main
   !----------------------------------------------------------------------|
   !   output format
   formatoutdata= '(1x,e13.5e3,1x,e13.5e3,1x,e13.5e3,1x,e13.5e3,1x,e13.5e3)'
-  formatoutmessage= '(1x," write    ","step=",i8," t=",e10.3," nd =",i3)'
+  formatoutmessage= '(1x," write    ","step=",i8," t=",e10.3," nd =",i4)'
   formatstopmessage= '(1x," stop     ","step=",i8," t=",e10.3)'
   !----------------------------------------------------------------------|
   !   initialize
@@ -110,7 +112,6 @@ program main
   call bc_free_b(p,ix,jx); call bc_free_u(p,ix,jx)
   call bc_free_l(p,ix,jx); call bc_free_r(p,ix,jx)
 
-!dtout = 0.d0
   !----------------------------------------------------------------------|
   !! BINARY OUTPUT
   ! calc eps
@@ -122,12 +123,12 @@ program main
   call put2dreal(12,'z.dac',z)
   call put0dreal(10,'t.dac',t)
   call put2dreal(16,'vx.dac',vx)
-  call put2dreal(17,'vz.dac',vx)
+  call put2dreal(17,'vz.dac',vz)
   call put2dreal(20,'rho.dac',rho)
   call put2dreal(21,'p.dac',p)
   call put2dreal(22,'eps.dac',eps)
   write(*,formatoutmessage) ns,t,nd
-  !tout = tout + dtout
+  tout = tout + dtout
   nd = nd + 1
 
 
@@ -136,8 +137,8 @@ program main
   !     time integration 
   !======================================================================|
 
-  do while (t < tend)
-  !DO WHILE (ns < 10)
+  !do while (t < tend)
+  DO WHILE (ns < 300)
   ns=ns+1
   !----------------------------------------------------------------------|
   !     time spacing
@@ -145,11 +146,11 @@ program main
   !dt = 0.5d-4
   CALL calc_dt(rho,vx,vz,p,gamma,ix,jx,dt,dx,dz)
   !! temporary
-  if(ns == 1) then
-    tout = tout + dt ! うえのやつ
-    dtout =  dt
-    tend = 10 * dtout
-  endif
+ ! if(ns == 1) then
+ !   tout = tout + dt ! うえのやつ
+ !   dtout =  dt
+ !   tend = 10 * dtout
+ ! endif
   !---------------------------------------------------------------------|
   ! FIRST STEP
   !----------------------------------------------------------------------|
@@ -257,6 +258,11 @@ program main
   call bc_fix_b(vz,ix,jx); call bc_free_u(vz,ix,jx)
   call bc_free_l(vz,ix,jx); call bc_free_r(vz,ix,jx)
 
+  call bc_free_b(eps,ix,jx); call bc_free_u(eps,ix,jx)
+  call bc_free_l(eps,ix,jx); call bc_free_r(eps,ix,jx)
+
+
+  p(:,:) = (gamma - 1.d0) * (eps(:,:) - 0.5d0*rho(:,:)*(vx(:,:)**2+vz(:,:)**2))
   call bc_free_b(p,ix,jx); call bc_free_u(p,ix,jx)
   call bc_free_l(p,ix,jx); call bc_free_r(p,ix,jx)
 
@@ -264,7 +270,8 @@ program main
   ! ARTIFICIAL VISCOSITY
   !=====================
 
-  qv=3.d0
+  qv = 3.d0
+  !qv = 0.d0
 
   if(nd == 1) then
     call qv_param(qv)
@@ -290,7 +297,7 @@ program main
   vz(:,:)=rvz(:,:)/rho(:,:)
   eps(:,:)=e(:,:)
 
-  p(:,:) = (gamma - 1.d0) * (eps(:,:) - 0.5d0*rho(:,:)*(vx(:,:)**2+vz(:,:)**2))
+  !p(:,:) = (gamma - 1.d0) * (eps(:,:) - 0.5d0*rho(:,:)*(vx(:,:)**2+vz(:,:)**2))
 
   !==============================
   !!     boundary condition
@@ -299,19 +306,74 @@ program main
   call bc_free_b(rho,ix,jx); call bc_free_u(rho,ix,jx)
   call bc_free_l(rho,ix,jx); call bc_free_r(rho,ix,jx)
 
-  call bc_free_b(vx,ix,jx); call bc_free_u(vx,ix,jx)
-  call bc_fix_l(vx,ix,jx); call bc_free_r(vx,ix,jx)
+  call bc_fix_b(vx,ix,jx); call bc_free_u(vx,ix,jx)
+  call bc_free_b(vx,ix,jx); call bc_free_r(vx,ix,jx)
   
   call bc_fix_b(vz,ix,jx); call bc_free_u(vz,ix,jx)
   call bc_free_l(vz,ix,jx); call bc_free_r(vz,ix,jx)
+
+  call bc_free_b(eps,ix,jx); call bc_free_u(eps,ix,jx)
+  call bc_free_l(eps,ix,jx); call bc_free_r(eps,ix,jx)
+  
+  p(:,:) = (gamma - 1.d0) * (eps(:,:) - 0.5d0*rho(:,:)*(vx(:,:)**2+vz(:,:)**2))
 
   call bc_free_b(p,ix,jx); call bc_free_u(p,ix,jx)
   call bc_free_l(p,ix,jx); call bc_free_r(p,ix,jx)
   !----------------------------------------------------------------------|
 
+  !!!!! NAN CHECK
+  do j = 1, jx
+  do i = 1, ix
+  if (ieee_is_nan(rho(i,j))) then
+    write(*, *) "rho", i, j
+    write(*, *) "nd:", nd
+    write(*, *) "rho", rho(i,j)
+    write(*, *) "vx", vx(i,j)
+    write(*, *) "vz", vz(i,j)
+    write(*, *) "p", p(i,j)
+    stop 999
+  endif
+  if (ieee_is_nan(vx(i,j))) then
+    write(*, *) "vx", i, j
+    write(*, *) "nd:", nd
+    write(*, *) "rho", rho(i,j)
+    write(*, *) "vx", vx(i,j)
+    write(*, *) "vz", vz(i,j)
+    write(*, *) "p", p(i,j)
+    stop 999
+  endif
+  if (ieee_is_nan(vz(i,j))) then
+    write(*, *) "vz", i, j
+    write(*, *) "nd:", nd
+    write(*, *) "rho", rho(i,j)
+    write(*, *) "vx", vx(i,j)
+    write(*, *) "vz", vz(i,j)
+    write(*, *) "p", p(i,j)
+    stop 999
+  endif
+  if (ieee_is_nan(p(i,j))) then
+    write(*, *) "p", i, j
+    write(*, *) "nd:", nd
+    write(*, *) "rho", rho(i,j)
+    write(*, *) "vx", vx(i,j)
+    write(*, *) "vz", vz(i,j)
+    write(*, *) "p", p(i,j)
+    stop 999
+  endif
+  enddo
+  enddo
+
+
+
+
+
+
+
+
+
   t=t+dt
   !     data output 
-  if (t >= tout) then
+  !if (t >= tout) then
 
 
     call put0dreal(10,'t.dac',t)
@@ -324,7 +386,7 @@ program main
 
     tout=tout+dtout
     nd=nd+1
-  endif
+  !endif
 
   enddo ! do while (t < tend)
 

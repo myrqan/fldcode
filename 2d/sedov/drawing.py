@@ -20,6 +20,48 @@ vx= read.read_phys2d('vx.dac',ix,jx)
 vz= read.read_phys2d('vz.dac',ix,jx)
 pr= read.read_phys2d('p.dac',ix,jx)
 
+nd = np.size(t)
+
+print(nd)
+
+diag = np.zeros(ix)
+ro_diag = np.zeros((nd,ix))
+for i in range(ix):
+    diag[i] = x[i][i]
+
+for n in range(nd):
+    ro_diag[n] = np.diag(ro[n])
+print(diag)
+print(ro_diag)
+
+
+## for draw graph
+fig = plt.figure(figsize=(7, 5))
+plt.rcParams['font.size']=13
+plt.rcParams['font.family']='STIXGeneral'
+plt.rcParams['mathtext.fontset']='stix'
+ax = fig.add_subplot(111)
+ax.set_ylim(0,1)
+ax.set_xlim(0,1)
+
+n = 300
+for n in range(0,300,2):
+    ax.set_ylim(0,0.5)
+    ax.set_xlim(0,0.5)
+    tle = str(t[n])[:6]
+    axtle = ax.set_title(r"$V_all$ : $t=$"+tle)
+    im1 = ax.pcolormesh(x,z,np.sqrt(vx[n]**2+vz[n]**2),vmin=0, vmax=0.4, cmap='plasma')
+    cbar = fig.colorbar(im1,ax=ax)
+    svnm = "fig/"+ str(n).zfill(3) + ".png"
+    plt.savefig(svnm,dpi=300)
+    cbar.remove()
+    ax.clear()
+
+#plt.show()
+
+exit()
+
+
 #for n in range(2):
 #    for i in range(ix):
 #        for j in range(jx):
@@ -37,8 +79,9 @@ print()
 
 #print(x)
 #print(z)
-for n in range(10):
+for n in range(5):
     print(pr[n])
+    print()
 #n = 1
 #exit()
 
@@ -58,19 +101,22 @@ plt.rcParams['font.family']='STIXGeneral'
 plt.rcParams['mathtext.fontset']='stix'
 
 
-ax00 = fig.add_subplot(111,projection='3d')
-#ax00.set_xlim(0,1.0)
-#ax00.set_ylim(0,5)
-##ax00.set_ylim(-0.2,1.2)
-#ax00.set_zlim(0,1.2)
-ax00.set_zlim(1e-4,1)
-ax00.set_zscale('log')
-ax00.set_title(r'Density')
-n = 0
-ax00.plot_surface(x,z,pr[0])
-plt.show()
+#ax00 = fig.add_subplot(111,projection='3d')
+##ax00.set_xlim(0,1.0)
+##ax00.set_ylim(0,5)
+###ax00.set_ylim(-0.2,1.2)
+##ax00.set_zlim(0,1.2)
+#ax00.set_zlim(1e-4,1)
+#ax00.set_zscale('log')
+#ax00.set_title(r'Density')
+#n = 0
+#ax00.plot_surface(x,z,pr[0])
+#plt.show()
 
-exit()
+#exit()
+
+
+ax00 = fig.add_subplot(221)
 ax01 = fig.add_subplot(222)
 ax01.set_xlim(0,1.0)
 #ax01.set_ylim(-0.2,1.2)
@@ -89,9 +135,9 @@ for i in range(0,np.size(t)-1,2):
         continue
     lb = r'$t=$'+str(t[i])[:4]
 
-    ax00.plot(x, rho[i],label=lb)
-    ax01.plot(x, p[i],label=lb)
-    ax10.plot(x, vx[i],label=lb)
+    ax00.plot(diag, diag_ro, label=lb)
+    ax01.plot(diag, diag_pr, label=lb)
+    ax10.plot(diag, diag_vx, label=lb)
 
 ax00.legend(loc='upper left', bbox_to_anchor=(1,1))
 ax01.legend(loc='upper left', bbox_to_anchor=(1,1))
@@ -99,7 +145,7 @@ ax10.legend(loc='upper left', bbox_to_anchor=(1,1))
 
 plt.tight_layout()
 
-plt.savefig('sedov1d.png', dpi=300,bbox_inches='tight')
+#plt.savefig('sedov1d.png', dpi=300,bbox_inches='tight')
 plt.show()
 
 exit()
