@@ -25,8 +25,8 @@ module cfl
       if (dt < dtmin) then
         stop 999
       endif
-      write(*, *) "dt:", dt
-      write(*, *) "iout, jout", iout, jout
+      !write(*, *) "dt:", dt
+      !write(*, *) "iout, jout", iout, jout
     end subroutine calc_dt
 end module cfl
 

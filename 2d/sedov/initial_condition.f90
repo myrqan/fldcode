@@ -34,7 +34,7 @@ module initial_condition
       dx = 1.d0 / dble(iix)
       dz = 1.d0 / dble(jjx)
       xmin = 0.04d0 ! 0.04d0
-      zmin = dz ! 0.04d0
+      zmin = 0.d0 !dz ! 0.04d0
       !xmin = dx
       !x(1) = 2*dx
       x(1,:) = xmin - 0.5d0 * dx
@@ -65,9 +65,9 @@ module initial_condition
       we = 0.1d0; prism = 1.d-8
       rho(:,:) = 1.d0;
       vx(:,:) = 0.d0; vz(:,:)= 0.d0
-      do j = 1,ix
-      do i = 1, ix
-        p(i,j) = prism + (1.d0-prism)*exp(-(x(i,j)**2+z(i,j)**2)/(we**2))
+      do j = 1,jx
+      do i = 1,ix
+        p(i,j) = prism + (1.d0-prism)*exp(-(sqrt(x(i,j)**2+z(i,j)**2)/we)**2)
       enddo
       enddo
     end subroutine sedov2d

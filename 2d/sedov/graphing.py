@@ -10,45 +10,6 @@ from scipy.io import FortranFile
 #p = read.read_1d('p.dac')
 #print(max(vx[0]))
 
-def read_prop_cans(f):
-    byo = f.read_record('i4')
-    ver = f.read_record('i4')
-    typ = f.read_record('i4')
-    dim = f.read_record('i4')
-    grs = f.read_record('i4')
-    if (dim == 3):
-        return [grs[0],grs[1]]
-    return(grs)
-
-def read_t_cans(file):
-    f = FortranFile(file,'r')
-    read_prop_cans(f)
-    t = []
-    while True:
-        try:
-            t.extend(f.read_record('f8'))
-        except:
-            break
-    return np.array(t)
-
-def read_x_cans(file):
-    f = FortranFile(file,'r')
-    read_prop_cans(f)
-    x = np.array(f.read_record('f8'))
-    return x
-
-def read_phys2d_cans(file):
-    f = FortranFile(file,'r')
-    list = read_prop_cans(f)
-    ix = list[0]
-    jx = list[1]
-    phys = []
-    while True:
-        try:
-            phys.append(f.read_record('f8').reshape(ix,jx,order='F'))
-        except:
-            break
-    return np.array(phys)
 
 ixjx = read.read_grid2d('ixjx.dac')
 ix = ixjx[0]
@@ -61,86 +22,72 @@ vx= read.read_phys2d('vx.dac',ix,jx)
 vz= read.read_phys2d('vz.dac',ix,jx)
 pr= read.read_phys2d('p.dac',ix,jx)
 
-#### read cans output
-dir = '/Users/crutont/Documents/cans/cans2d/md_sedov/hdmlw/'
-t_cans = read_t_cans(dir+'t.dac')
-x_cans = read_x_cans(dir+'x.dac')
-z_cans = read_x_cans(dir+'z.dac')
-
-ix_cans = np.size(x)
-jx_cans = np.size(z)
-
-#X,Z = np.meshgrid(x,z)
-
-ro_cans = read_phys2d_cans(dir+'ro.dac')
-pr_cans = read_phys2d_cans(dir+'pr.dac')
-vx_cans = read_phys2d_cans(dir+'vx.dac')
-vz_cans = read_phys2d_cans(dir+'vz.dac')
-
-
-
-for n in range(5):
-    print('cans_t[n]', t_cans[n])
-    print('     t[n]', t[n])
-
-print(x_cans[:3])
-print(x[:3,0])
-
-
-print(z_cans[:3])
-print(z[0,:3])
-
-print('ro')
-print(ro_cans[1,:4,:4])
-print(ro[1,:4,:4])
-print('pr')
-print(pr_cans[1,:4,:4])
-print(pr[1,:4,:4])
-#exit()
-
-eps = 1.e-5
-cnt = 0
-#for n in range(10):
-#    for i in range(ix):
-#        for j in range(jx):
-#            if(cnt > 10):
-#                print('cnt > 10')
-#                exit()
-#            if(np.abs(ro_cans[n,i,j] - ro[n,i,j]) > eps):
-#                print('n=', (n), 'i=',(i+1), 'j=', (j+1))
-#                print('cans[i,j]=',  ro_cans[n,i,j])
-#                print('    [i,j]=',  ro[n,i,j])
-#                cnt+=1
-#
-##exit()
-#print(ro_cans[0])
-#print(ro[0])
-
-
-
-
-
-
-
-
-
-
-#exit()
 nd = np.size(t)
 
-print(nd)
-
 diag = np.zeros(ix)
-ro_diag = np.zeros((nd,ix))
+diag_ro = np.zeros((nd,ix))
+diag_pr = np.zeros((nd,ix))
+diag_vx = np.zeros((nd,ix))
+diag_vz = np.zeros((nd,ix))
+
 for i in range(ix):
     diag[i] = x[i][i]
 
 for n in range(nd):
-    ro_diag[n] = np.diag(ro[n])
-print(diag)
-print(ro_diag)
+    diag_ro[n] = np.diag(ro[n])
+    diag_pr[n] = np.diag(pr[n])
+    diag_vx[n] = np.diag(vx[n])
+    diag_vz[n] = np.diag(vz[n])
+#print(diag)
+#print(ro_diag)
+
+# for graphing
+fig = plt.figure(figsize=(15, 8))
+plt.rcParams['font.size']=12
+plt.rcParams['font.family']='STIXGeneral'
+plt.rcParams['mathtext.fontset']='stix'
 
 
+ax00 = fig.add_subplot(221)
+ax01 = fig.add_subplot(222)
+ax10 = fig.add_subplot(223)
+
+ax00.set_xlim(0,1.0)
+#ax01.set_ylim(-0.2,1.2)
+ax00.set_ylim(0,5)
+ax00.set_title(r'Density')
+
+
+ax01.set_xlim(0,1.0)
+#ax01.set_ylim(-0.2,1.2)
+ax01.set_ylim(1e-4,1)
+ax01.set_yscale('log')
+ax01.set_title(r'Pressure')
+
+ax10.set_xlim(0,1.0)
+ax10.set_ylim(-0.05,0.15)
+#ax10.set_ylim(-0.2,1.2)
+ax10.set_title(r'Velocity (all)')
+
+for i in range(0,nd,2):
+    lb = r'$t=$'+str(t[i])[:4]
+
+    ax00.plot(diag, diag_ro[i], label=lb)
+    ax01.plot(diag, diag_pr[i], label=lb)
+    ax10.plot(diag, np.sqrt(diag_vx[i]**2+diag_vz[i]**2), label=lb)
+
+ax00.legend(loc='upper left', bbox_to_anchor=(1,1))
+ax01.legend(loc='upper left', bbox_to_anchor=(1,1))
+ax10.legend(loc='upper left', bbox_to_anchor=(1,1))
+
+plt.tight_layout()
+
+#plt.savefig('sedov1d.png', dpi=300,bbox_inches='tight')
+plt.show()
+
+exit()
+
+exit()
 ## for draw graph
 fig = plt.figure(figsize=(7, 5))
 plt.rcParams['font.size']=13

@@ -9,8 +9,8 @@ module arvis
       do j = 1,jx-1
       do i = 1,ix-1
        !qx(i,j)=qav*dxm(i)*max(zero,abs(vx(i+1,j)-vx(i,j))-1.0e-4)
-        kx(i,j) = qv*dx*max(abs(vx(i+1,j)-vx(i,j))-1.0d-4,0.d0)
-        kz(i,j) = qv*dz*max(abs(vz(i,j+1)-vz(i,j))-1.0d-4,0.d0)
+        kx(i,j) = qv*dx*max(abs(vx(i+1,j)-vx(i,j))-1.0d-4, 0.d0)
+        kz(i,j) = qv*dz*max(abs(vz(i,j+1)-vz(i,j))-1.0d-4, 0.d0)
       enddo
       enddo
     end subroutine calc_coef_k

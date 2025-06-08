@@ -17,8 +17,8 @@ program main
   character(len=100) :: formatoutdata,formatoutmessage,formatstopmessage
   integer :: mfile
   integer,parameter :: margin = 1
-  integer,parameter :: grid_x = 300
-  integer,parameter :: grid_z = 300
+  integer,parameter :: grid_x = 200
+  integer,parameter :: grid_z = 200
   integer,parameter :: ix=2*margin+grid_x
   integer,parameter :: jx=2*margin+grid_z
   integer::grid_ary(2)
@@ -81,7 +81,7 @@ program main
 
   !----------------------------------------------------------------------|
   !   time control parameters
-  tend=6.d0  ! time for end of calculation
+  tend=6.0d0  ! time for end of calculation
   dtout=0.5d0! time spacing for data output
   !----------------------------------------------------------------------|
   !  initialize counters
@@ -137,8 +137,8 @@ program main
   !     time integration 
   !======================================================================|
 
-  !do while (t < tend)
-  DO WHILE (ns < 300)
+  do while (t < tend)
+  !DO WHILE (ns < 10)
   ns=ns+1
   !----------------------------------------------------------------------|
   !     time spacing
@@ -232,39 +232,39 @@ program main
   CALL mlw2dsrc2nd(de,r,ix,jx,dt,dx,dz)
 
 
-  ro(:,:)=ro(:,:)+dro(:,:)
-  rvx(:,:)=rvx(:,:)+drvx(:,:)
-  rvz(:,:)=rvz(:,:)+drvz(:,:)
-  e(:,:)=e(:,:)+de(:,:)
+  !ro(:,:)=ro(:,:)+dro(:,:)
+  !rvx(:,:)=rvx(:,:)+drvx(:,:)
+  !rvz(:,:)=rvz(:,:)+drvz(:,:)
+  !e(:,:)=e(:,:)+de(:,:)
 
-  rho(:,:)=ro(:,:)
-  vx(:,:)=rvx(:,:)/rho(:,:)
-  vz(:,:)=rvz(:,:)/rho(:,:)
-  eps(:,:)=e(:,:)
+  !rho(:,:)=ro(:,:)
+  !vx(:,:)=rvx(:,:)/rho(:,:)
+  !vz(:,:)=rvz(:,:)/rho(:,:)
+  !eps(:,:)=e(:,:)
 
-  p(:,:) = (gamma - 1.d0) * (eps(:,:) - 0.5d0*rho(:,:)*(vx(:,:)**2+vz(:,:)**2))
+  !p(:,:) = (gamma - 1.d0) * (eps(:,:) - 0.5d0*rho(:,:)*(vx(:,:)**2+vz(:,:)**2))
 
 
   !==============================
   !!     boundary condition
   !==============================
 
-  call bc_free_b(rho,ix,jx); call bc_free_u(rho,ix,jx)
-  call bc_free_l(rho,ix,jx); call bc_free_r(rho,ix,jx)
+  !call bc_free_b(rho,ix,jx); call bc_free_u(rho,ix,jx)
+  !call bc_free_l(rho,ix,jx); call bc_free_r(rho,ix,jx)
+  !
+  !call bc_free_b(vx,ix,jx); call bc_free_u(vx,ix,jx)
+  !call bc_fix_l(vx,ix,jx); call bc_free_r(vx,ix,jx)
+  !
+  !call bc_fix_b(vz,ix,jx); call bc_free_u(vz,ix,jx)
+  !call bc_free_l(vz,ix,jx); call bc_free_r(vz,ix,jx)
+  !
+  !call bc_free_b(eps,ix,jx); call bc_free_u(eps,ix,jx)
+  !call bc_free_l(eps,ix,jx); call bc_free_r(eps,ix,jx)
 
-  call bc_free_b(vx,ix,jx); call bc_free_u(vx,ix,jx)
-  call bc_fix_l(vx,ix,jx); call bc_free_r(vx,ix,jx)
-  
-  call bc_fix_b(vz,ix,jx); call bc_free_u(vz,ix,jx)
-  call bc_free_l(vz,ix,jx); call bc_free_r(vz,ix,jx)
 
-  call bc_free_b(eps,ix,jx); call bc_free_u(eps,ix,jx)
-  call bc_free_l(eps,ix,jx); call bc_free_r(eps,ix,jx)
-
-
-  p(:,:) = (gamma - 1.d0) * (eps(:,:) - 0.5d0*rho(:,:)*(vx(:,:)**2+vz(:,:)**2))
-  call bc_free_b(p,ix,jx); call bc_free_u(p,ix,jx)
-  call bc_free_l(p,ix,jx); call bc_free_r(p,ix,jx)
+  !p(:,:) = (gamma - 1.d0) * (eps(:,:) - 0.5d0*rho(:,:)*(vx(:,:)**2+vz(:,:)**2))
+  !call bc_free_b(p,ix,jx); call bc_free_u(p,ix,jx)
+  !call bc_free_l(p,ix,jxn); call bc_free_r(p,ix,jx)
 
   !=====================
   ! ARTIFICIAL VISCOSITY
@@ -273,7 +273,7 @@ program main
   qv = 3.d0
   !qv = 0.d0
 
-  if(nd == 1) then
+  if(nd == 2) then
     call qv_param(qv)
   endif
 
@@ -291,13 +291,17 @@ program main
   e(:,:)=eps(:,:)
   CALL arvis2d(kx,kz,e,de,ix,jx,dt,dx,dz)
 
-  
+  ro(:,:)=ro(:,:)+dro(:,:)
+  rvx(:,:)=rvx(:,:)+drvx(:,:)
+  rvz(:,:)=rvz(:,:)+drvz(:,:)
+  e(:,:)=e(:,:)+de(:,:)
+
   rho(:,:)=ro(:,:)
   vx(:,:)=rvx(:,:)/rho(:,:)
   vz(:,:)=rvz(:,:)/rho(:,:)
   eps(:,:)=e(:,:)
 
-  !p(:,:) = (gamma - 1.d0) * (eps(:,:) - 0.5d0*rho(:,:)*(vx(:,:)**2+vz(:,:)**2))
+  p(:,:) = (gamma - 1.d0) * (eps(:,:) - 0.5d0*rho(:,:)*(vx(:,:)**2+vz(:,:)**2))
 
   !==============================
   !!     boundary condition
@@ -373,7 +377,7 @@ program main
 
   t=t+dt
   !     data output 
-  !if (t >= tout) then
+  if (t >= tout) then
 
 
     call put0dreal(10,'t.dac',t)
@@ -386,7 +390,8 @@ program main
 
     tout=tout+dtout
     nd=nd+1
-  !endif
+  endif
+
 
   enddo ! do while (t < tend)
 
