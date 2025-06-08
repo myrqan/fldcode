@@ -39,14 +39,9 @@ program main
   double precision :: vz(ix,jx),vzn(ix,jx)
   double precision :: p(ix,jx),pn(ix,jx)
   double precision :: eps(ix,jx),epsn(ix,jx)
-  !double precision :: s(ix,jx), sm(ix,jx), ds(ix,jx), dsm(ix,jx)
-  !double precision :: r(ix,jx),rm(ix,jx),dr(ix,jx)
   double precision :: dro(ix,jx),drvx(ix,jx),drvz(ix,jx),de(ix,jx)
   double precision :: ron(ix,jx),rvxn(ix,jx),rvzn(ix,jx),en(ix,jx)
   double precision :: ro(ix,jx),rvx(ix,jx),rvz(ix,jx),e(ix,jx)
-  !double precision :: rvx(ix,jx),rvxm(ix,jx),drvx(ix,jx)
-  !double precision :: rvz(ix,jx),rvzm(ix,jx),drvz(ix,jx)
-  !double precision :: e(ix,jx),em(ix,jx),des(ix,jx)
   double precision :: kx(ix,jx),kz(ix,jx),qv
   double precision, parameter :: gamma = 5.d0/3.d0
 
@@ -138,19 +133,11 @@ program main
   !======================================================================|
 
   do while (t < tend)
-  !DO WHILE (ns < 10)
   ns=ns+1
   !----------------------------------------------------------------------|
   !     time spacing
 
-  !dt = 0.5d-4
   CALL calc_dt(rho,vx,vz,p,gamma,ix,jx,dt,dx,dz)
-  !! temporary
- ! if(ns == 1) then
- !   tout = tout + dt ! うえのやつ
- !   dtout =  dt
- !   tend = 10 * dtout
- ! endif
   !---------------------------------------------------------------------|
   ! FIRST STEP
   !----------------------------------------------------------------------|
@@ -197,12 +184,6 @@ program main
   pn(:,:) = (gamma-1.d0) * (epsn(:,:)-0.5d0*rhon(:,:)*(vxn(:,:)**2+vzn(:,:)**2))
 
 
-    !call put2dreal(16,'vx.dac',vxn)
-    !call put2dreal(17,'vz.dac',vzn)
-    !call put2dreal(20,'rho.dac',ron)
-    !call put2dreal(21,'p.dac',pn)
-    !call put2dreal(22,'eps.dac',epsn)
-
   !----------------------------------------------------------------------|
   ! SECOND STEP
   !----------------------------------------------------------------------|
@@ -232,48 +213,14 @@ program main
   CALL mlw2dsrc2nd(de,r,ix,jx,dt,dx,dz)
 
 
-  !ro(:,:)=ro(:,:)+dro(:,:)
-  !rvx(:,:)=rvx(:,:)+drvx(:,:)
-  !rvz(:,:)=rvz(:,:)+drvz(:,:)
-  !e(:,:)=e(:,:)+de(:,:)
-
-  !rho(:,:)=ro(:,:)
-  !vx(:,:)=rvx(:,:)/rho(:,:)
-  !vz(:,:)=rvz(:,:)/rho(:,:)
-  !eps(:,:)=e(:,:)
-
-  !p(:,:) = (gamma - 1.d0) * (eps(:,:) - 0.5d0*rho(:,:)*(vx(:,:)**2+vz(:,:)**2))
-
-
-  !==============================
-  !!     boundary condition
-  !==============================
-
-  !call bc_free_b(rho,ix,jx); call bc_free_u(rho,ix,jx)
-  !call bc_free_l(rho,ix,jx); call bc_free_r(rho,ix,jx)
-  !
-  !call bc_free_b(vx,ix,jx); call bc_free_u(vx,ix,jx)
-  !call bc_fix_l(vx,ix,jx); call bc_free_r(vx,ix,jx)
-  !
-  !call bc_fix_b(vz,ix,jx); call bc_free_u(vz,ix,jx)
-  !call bc_free_l(vz,ix,jx); call bc_free_r(vz,ix,jx)
-  !
-  !call bc_free_b(eps,ix,jx); call bc_free_u(eps,ix,jx)
-  !call bc_free_l(eps,ix,jx); call bc_free_r(eps,ix,jx)
-
-
-  !p(:,:) = (gamma - 1.d0) * (eps(:,:) - 0.5d0*rho(:,:)*(vx(:,:)**2+vz(:,:)**2))
-  !call bc_free_b(p,ix,jx); call bc_free_u(p,ix,jx)
-  !call bc_free_l(p,ix,jxn); call bc_free_r(p,ix,jx)
 
   !=====================
   ! ARTIFICIAL VISCOSITY
   !=====================
 
   qv = 3.d0
-  !qv = 0.d0
 
-  if(nd == 2) then
+  if(ns == 1) then
     call qv_param(qv)
   endif
 
@@ -323,62 +270,14 @@ program main
 
   call bc_free_b(p,ix,jx); call bc_free_u(p,ix,jx)
   call bc_free_l(p,ix,jx); call bc_free_r(p,ix,jx)
-  !----------------------------------------------------------------------|
-
-  !!!!! NAN CHECK
-  do j = 1, jx
-  do i = 1, ix
-  if (ieee_is_nan(rho(i,j))) then
-    write(*, *) "rho", i, j
-    write(*, *) "nd:", nd
-    write(*, *) "rho", rho(i,j)
-    write(*, *) "vx", vx(i,j)
-    write(*, *) "vz", vz(i,j)
-    write(*, *) "p", p(i,j)
-    stop 999
-  endif
-  if (ieee_is_nan(vx(i,j))) then
-    write(*, *) "vx", i, j
-    write(*, *) "nd:", nd
-    write(*, *) "rho", rho(i,j)
-    write(*, *) "vx", vx(i,j)
-    write(*, *) "vz", vz(i,j)
-    write(*, *) "p", p(i,j)
-    stop 999
-  endif
-  if (ieee_is_nan(vz(i,j))) then
-    write(*, *) "vz", i, j
-    write(*, *) "nd:", nd
-    write(*, *) "rho", rho(i,j)
-    write(*, *) "vx", vx(i,j)
-    write(*, *) "vz", vz(i,j)
-    write(*, *) "p", p(i,j)
-    stop 999
-  endif
-  if (ieee_is_nan(p(i,j))) then
-    write(*, *) "p", i, j
-    write(*, *) "nd:", nd
-    write(*, *) "rho", rho(i,j)
-    write(*, *) "vx", vx(i,j)
-    write(*, *) "vz", vz(i,j)
-    write(*, *) "p", p(i,j)
-    stop 999
-  endif
-  enddo
-  enddo
-
-
-
-
-
-
-
-
+ 
 
   t=t+dt
-  !     data output 
-  if (t >= tout) then
 
+  !----------------------------------------------------------------------|
+  !     data output 
+  !----------------------------------------------------------------------|
+  if (t >= tout) then
 
     call put0dreal(10,'t.dac',t)
     call put2dreal(16,'vx.dac',vx)
@@ -391,7 +290,6 @@ program main
     tout=tout+dtout
     nd=nd+1
   endif
-
 
   enddo ! do while (t < tend)
 
