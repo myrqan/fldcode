@@ -33,7 +33,7 @@ module initial_condition
       jjx = jx - 2*margin
       dx = 1.d0 / dble(iix)
       dz = 1.d0 / dble(jjx)
-      xmin = 0.04d0 ! 0.04d0
+      xmin = dx! 0.04d0 ! 0.04d0
       zmin = 0.d0 !dz ! 0.04d0
       !xmin = dx
       !x(1) = 2*dx

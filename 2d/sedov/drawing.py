@@ -3,53 +3,6 @@ import matplotlib.pyplot as plt
 import read
 from scipy.io import FortranFile
 
-#t = read.read_0d('t.dac')
-#x = read.read_0d('x.dac')
-#vx = read.read_1d('vx.dac')
-#rho = read.read_1d('rho.dac')
-#p = read.read_1d('p.dac')
-#print(max(vx[0]))
-
-def read_prop_cans(f):
-    byo = f.read_record('i4')
-    ver = f.read_record('i4')
-    typ = f.read_record('i4')
-    dim = f.read_record('i4')
-    grs = f.read_record('i4')
-    if (dim == 3):
-        return [grs[0],grs[1]]
-    return(grs)
-
-def read_t_cans(file):
-    f = FortranFile(file,'r')
-    read_prop_cans(f)
-    t = []
-    while True:
-        try:
-            t.extend(f.read_record('f8'))
-        except:
-            break
-    return np.array(t)
-
-def read_x_cans(file):
-    f = FortranFile(file,'r')
-    read_prop_cans(f)
-    x = np.array(f.read_record('f8'))
-    return x
-
-def read_phys2d_cans(file):
-    f = FortranFile(file,'r')
-    list = read_prop_cans(f)
-    ix = list[0]
-    jx = list[1]
-    phys = []
-    while True:
-        try:
-            phys.append(f.read_record('f8').reshape(ix,jx,order='F'))
-        except:
-            break
-    return np.array(phys)
-
 ixjx = read.read_grid2d('ixjx.dac')
 ix = ixjx[0]
 jx = ixjx[1]
@@ -61,109 +14,47 @@ vx= read.read_phys2d('vx.dac',ix,jx)
 vz= read.read_phys2d('vz.dac',ix,jx)
 pr= read.read_phys2d('p.dac',ix,jx)
 
-#### read cans output
-dir = '/Users/crutont/Documents/cans/cans2d/md_sedov/hdmlw/'
-t_cans = read_t_cans(dir+'t.dac')
-x_cans = read_x_cans(dir+'x.dac')
-z_cans = read_x_cans(dir+'z.dac')
-
-ix_cans = np.size(x)
-jx_cans = np.size(z)
-
-#X,Z = np.meshgrid(x,z)
-
-ro_cans = read_phys2d_cans(dir+'ro.dac')
-pr_cans = read_phys2d_cans(dir+'pr.dac')
-vx_cans = read_phys2d_cans(dir+'vx.dac')
-vz_cans = read_phys2d_cans(dir+'vz.dac')
-
-
-
-for n in range(5):
-    print('cans_t[n]', t_cans[n])
-    print('     t[n]', t[n])
-
-print(x_cans[:3])
-print(x[:3,0])
-
-
-print(z_cans[:3])
-print(z[0,:3])
-
-print('ro')
-print(ro_cans[1,:4,:4])
-print(ro[1,:4,:4])
-print('pr')
-print(pr_cans[1,:4,:4])
-print(pr[1,:4,:4])
-#exit()
-
-eps = 1.e-5
-cnt = 0
-#for n in range(10):
-#    for i in range(ix):
-#        for j in range(jx):
-#            if(cnt > 10):
-#                print('cnt > 10')
-#                exit()
-#            if(np.abs(ro_cans[n,i,j] - ro[n,i,j]) > eps):
-#                print('n=', (n), 'i=',(i+1), 'j=', (j+1))
-#                print('cans[i,j]=',  ro_cans[n,i,j])
-#                print('    [i,j]=',  ro[n,i,j])
-#                cnt+=1
-#
-##exit()
-#print(ro_cans[0])
-#print(ro[0])
-
-
-
-
-
-
-
-
-
-
-#exit()
 nd = np.size(t)
-
-print(nd)
-
-diag = np.zeros(ix)
-ro_diag = np.zeros((nd,ix))
-for i in range(ix):
-    diag[i] = x[i][i]
-
-for n in range(nd):
-    ro_diag[n] = np.diag(ro[n])
-print(diag)
-print(ro_diag)
+#print(nd)
 
 
 ## for draw graph
-fig = plt.figure(figsize=(7, 5))
-plt.rcParams['font.size']=13
+fig = plt.figure(figsize=(10, 8))
+plt.rcParams['font.size']=10
 plt.rcParams['font.family']='STIXGeneral'
 plt.rcParams['mathtext.fontset']='stix'
-ax = fig.add_subplot(111)
-ax.set_ylim(0,1)
-ax.set_xlim(0,1)
+ax1 = fig.add_subplot(221)
+ax1.set_aspect('equal')
+ax2 = fig.add_subplot(222)
+ax2.set_aspect('equal')
+ax3 = fig.add_subplot(223)
+ax3.set_aspect('equal')
 
-n = 60
-for n in range(0,n,2):
-    ax.set_ylim(0,0.5)
-    ax.set_xlim(0,0.5)
+for n in range(0,nd):
+    ax1.set_ylim(0,1)
+    ax1.set_xlim(0,1)
+    ax2.set_ylim(0,1)
+    ax2.set_xlim(0,1)
+    ax3.set_ylim(0,1)
+    ax3.set_xlim(0,1)
     tle = str(t[n])[:6]
-    #axtle = ax.set_title(r"$V_{\text{all}}$ : $t=$"+tle)
-    axtle = ax.set_title(r"$\rho$ : $t=$"+tle)
-    im1 = ax.pcolormesh(x,z,ro[n],vmin=0,vmax=3,cmap='plasma')
-    #im1 = ax.pcolormesh(x,z,np.sqrt(vx[n]**2+vz[n]**2),vmin=0, vmax=0.4, cmap='plasma')
-    cbar = fig.colorbar(im1,ax=ax)
+    ax1tle = ax1.set_title(r"$\rho$ (Density) : $t=$"+tle)
+    ax2tle = ax2.set_title(r"$\log P_r$ (Pressure) : $t=$"+tle)
+    ax3tle = ax3.set_title(r"$V_{\text{all}}$ (Velocity) : $t=$"+tle)
+    im1 = ax1.pcolormesh(x,z,ro[n],vmin=0,vmax=3,cmap='plasma')
+    im2 = ax2.pcolormesh(x,z,np.log(pr[n]),vmin=-8,vmax=-4,cmap='plasma')
+    im3 = ax3.pcolormesh(x,z,np.sqrt(vx[n]**2+vz[n]**2),vmin=0, vmax=0.1, cmap='plasma')
+    cbar1 = fig.colorbar(im1,ax=ax1)
+    cbar2 = fig.colorbar(im2,ax=ax2)
+    cbar3 = fig.colorbar(im3,ax=ax3)
     svnm = "fig/"+ str(n).zfill(3) + ".png"
     plt.savefig(svnm,dpi=300)
-    cbar.remove()
-    ax.clear()
+    cbar1.remove()
+    cbar2.remove()
+    cbar3.remove()
+    ax1.clear()
+    ax2.clear()
+    ax3.clear()
 
 #plt.show()
 
