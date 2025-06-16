@@ -1,4 +1,5 @@
 *.dac
+*.dat
 *.png
 .DS_Store
 *.mod
