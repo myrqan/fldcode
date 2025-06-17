@@ -11,11 +11,15 @@ x = read.read_x2d('x.dat',ix,jx)
 z = read.read_x2d('z.dat',ix,jx)
 ro= read.read_phys2d('ro.dat',ix,jx)
 vx= read.read_phys2d('vx.dat',ix,jx)
+vy= read.read_phys2d('vy.dat',ix,jx)
 vz= read.read_phys2d('vz.dat',ix,jx)
+bx= read.read_phys2d('bx.dat',ix,jx)
+by= read.read_phys2d('by.dat',ix,jx)
+bz= read.read_phys2d('bz.dat',ix,jx)
 pr= read.read_phys2d('p.dat',ix,jx)
 
+
 print(t)
-exit()
 nd = np.size(t)
 #print(nd)
 
@@ -25,6 +29,24 @@ fig = plt.figure(figsize=(10, 8))
 plt.rcParams['font.size']=10
 plt.rcParams['font.family']='STIXGeneral'
 plt.rcParams['mathtext.fontset']='stix'
+
+ax = fig.add_subplot(111)
+ax.set_aspect('equal')
+
+
+n = 0
+for n in range(nd):
+    im1 = ax.pcolormesh(x,z,vx[n],cmap='plasma')
+    cbar1 = fig.colorbar(im1,ax=ax)
+
+    savename = 'fig/'+str(n).zfill(3)+'.png'
+    plt.savefig(savename,dpi=300)
+    cbar1.remove()
+    ax.clear()
+
+
+
+exit()
 ax1 = fig.add_subplot(221)
 ax1.set_aspect('equal')
 ax2 = fig.add_subplot(222)

@@ -17,7 +17,7 @@ contains
   !
   ! name: bc(val,num1,num2,margin,ix,jx)
   ! num1 : surface number (0 to 3)
-  ! num2 : symmetric(0) or asymmetric(1) or free(2)
+  ! num2 : symmetric same sign(0) or symmetric different sign(1) or free(2)
 
   subroutine bc(val,num1,num2,margin,ix,jx)
     INTEGER,INTENT(IN) :: ix,jx,margin
@@ -28,11 +28,11 @@ contains
     if(num1 == 0) then  !! at z = zmin
       condition0:&
         select case(num2)
-      case(0) !! symmetric condition
+      case(0) !! same
         do jj = 0,margin-1
         val(:,margin-jj) = val(:,margin+jj+1)
         enddo
-      case(1) !! asymmetric condition
+      case(1) !! different
         do jj = 0,margin-1
         val(:,margin-jj) = - val(:,margin+jj+1)
         enddo
@@ -47,11 +47,11 @@ contains
     else if(num1 == 1) then !! at x = xmax
       condition1:&
         select case(num2)
-      case(0) !! symmetric condition
+      case(0) !! same
         do ii = 1,margin
         val(ix-margin+ii,:) = val(ix-margin-ii+1,:)
         enddo
-      case(1) !! asymmetric condition
+      case(1) !! different
         do ii = 1,margin
         val(ix-margin+ii,:) = - val(ix-margin-ii+1,:)
         enddo
@@ -66,11 +66,11 @@ contains
     else if (num1 == 2) then !! at z = zmax
       condition2:&
         select case(num2)
-      case(0) !! symmetric condition
+      case(0) !! same
         do jj = 1,margin
         val(:,jx-margin+jj) = val(:,jx-margin-jj+1)
         enddo
-      case(1) !! asymmetric condition
+      case(1) !! different
         do jj = 1,margin
         val(:,jx-margin+jj) = - val(:,jx-margin-jj+1)
         enddo
@@ -85,11 +85,11 @@ contains
     else if (num1 == 3) then !! at x = xmin
       condition3:&
         select case(num2)
-      case(0) !! symmetric condition
+      case(0) !! same
         do ii = 0,margin-1
         val(margin-ii,:) = val(margin+ii+1,:)
         enddo
-      case(1) !! asymmetric condition
+      case(1) !! different
         do ii = 0,margin-1
         val(margin-ii,:) = - val(margin+ii+1,:)
         enddo
