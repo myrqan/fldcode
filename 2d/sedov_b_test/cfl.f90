@@ -12,7 +12,7 @@ module cfl
       DOUBLE PRECISION :: min_val,v2,va2,vs2
       INTEGER :: i,j
       INTEGER :: iout, jout
-      DOUBLE PRECISION :: dtmin = 1.d-15
+      DOUBLE PRECISION :: dtmin = 1.d-10
       min_val = 1e20
       do j = 2, jx-1
       do i = 2, ix-1
@@ -28,8 +28,7 @@ module cfl
       enddo
       dt = safety * min_val
       if (dt < dtmin) then
-        write(*,*) 'dt=', dt
-        stop 349
+        stop 999
       endif
       !write(*, *) "dt:", dt
       !write(*, *) "iout, jout", iout, jout

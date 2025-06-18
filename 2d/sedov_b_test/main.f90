@@ -18,8 +18,8 @@ PROGRAM main
   DOUBLE PRECISION,PARAMETER :: pi = 4.d0*ATAN(1.d0)
   CHARACTER(100) :: foutmsg,fstopmsg
   INTEGER,PARAMETER :: margin = 1
-  INTEGER,PARAMETER :: grid_x = 500
-  INTEGER,PARAMETER :: grid_z = 500
+  INTEGER,PARAMETER :: grid_x = 100
+  INTEGER,PARAMETER :: grid_z = 100
   INTEGER,PARAMETER :: ix = 2*margin+grid_x
   INTEGER,PARAMETER :: jx = 2*margin+grid_z
   INTEGER :: ixjx(2) = (/ix,jx/)
@@ -56,7 +56,7 @@ PROGRAM main
   !========================================
 
   foutmsg='(1x," WRITE  ","STEP=  ",i7," time=",e10.3," nd=",i4)'
-  fstopmsg='(1x," STOP  ","STEP=  ",i7," time=",e10.3)'
+  fstopmsg='(1x,"  STOP  ","STEP=  ",i7," time=",e10.3)'
 
   !========================================
   !! initialize variables
@@ -139,6 +139,7 @@ PROGRAM main
 
 
   ! (apply BC for ro,v,b,p)
+
   CALL bc(ro,0,0,margin,ix,jx)
   CALL bc(ro,1,2,margin,ix,jx)
   CALL bc(ro,2,2,margin,ix,jx)
@@ -148,38 +149,17 @@ PROGRAM main
   CALL bc(vx,1,2,margin,ix,jx)
   CALL bc(vx,2,2,margin,ix,jx)
   CALL bc(vx,3,1,margin,ix,jx)
-
-  CALL bc(vy,0,0,margin,ix,jx)
-  CALL bc(vy,1,2,margin,ix,jx)
-  CALL bc(vy,2,2,margin,ix,jx)
-  CALL bc(vy,3,1,margin,ix,jx)
-
+  
   CALL bc(vz,0,1,margin,ix,jx)
   CALL bc(vz,1,2,margin,ix,jx)
   CALL bc(vz,2,2,margin,ix,jx)
   CALL bc(vz,3,0,margin,ix,jx)
 
-  CALL bc(bx,0,1,margin,ix,jx)
-  CALL bc(bx,1,2,margin,ix,jx)
-  CALL bc(bx,2,2,margin,ix,jx)
-  CALL bc(bx,3,1,margin,ix,jx)
-
-  CALL bc(by,0,1,margin,ix,jx)
-  CALL bc(by,1,2,margin,ix,jx)
-  CALL bc(by,2,2,margin,ix,jx)
-  CALL bc(by,3,1,margin,ix,jx)
-
-  CALL bc(bz,0,1,margin,ix,jx)
-  CALL bc(bz,1,2,margin,ix,jx)
-  CALL bc(bz,2,2,margin,ix,jx)
-  CALL bc(bz,3,0,margin,ix,jx)
-
   CALL bc(p,0,0,margin,ix,jx)
   CALL bc(p,1,2,margin,ix,jx)
   CALL bc(p,2,2,margin,ix,jx)
   CALL bc(p,3,0,margin,ix,jx)
-
-  CALL calc_e(bx,by,bz,vx,vy,vz,ex,ey,ez)
+  
   CALL calc_etot(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
 
   !========================================
@@ -202,8 +182,11 @@ PROGRAM main
   tout = tout + dtout
 
   !========================================
+  !========================================
   !!  MAIN LOOP (TIME INTEGRATION)
   !========================================
+  !========================================
+
   main_loop:&
     do while(t < tend)
     !do while(ns < 10)
@@ -219,7 +202,6 @@ PROGRAM main
   etotn(:,:)=0.d0;bxn(:,:)=0.d0;byn(:,:)=0.d0;bzn(:,:)=0.d0
 
   rvx(:,:) = ro(:,:)*vx(:,:)
-  rvy(:,:) = ro(:,:)*vy(:,:)
   rvz(:,:) = ro(:,:)*vz(:,:)
   b2(:,:) = bx(:,:)**2+by(:,:)**2+bz(:,:)**2
   v2(:,:) = vx(:,:)**2+vy(:,:)**2+vz(:,:)**2
@@ -228,76 +210,37 @@ PROGRAM main
   !! 1st STEP
   !========================================
 
-  fx(:,:) = ro(:,:)*vx(:,:)
-  fz(:,:) = ro(:,:)*vz(:,:)
-  r(:,:) = -fx(:,:) / x(:,:)
+  fx(:,:)=ro(:,:)*vx(:,:)
+  fz(:,:)=ro(:,:)*vz(:,:)
+  r(:,:)=-ro(:,:)*vx(:,:)/x(:,:)
   CALL mlw2d1st(ro,fx,fz,ron,dro,ix,jx,dt,dx,dz)
   CALL mlw2dsrc1st(r,ron,dro,ix,jx,dt,dx,dz)
 
-  fx(:,:) = ro(:,:)*vx(:,:)**2+p(:,:)+0.5d0*b2(:,:)-bx(:,:)**2
-  fz(:,:) = ro(:,:)*vz(:,:)*vx(:,:)-bz(:,:)*bx(:,:)
-  r(:,:) = - (ro(:,:)*(vx(:,:)**2-vy(:,:)**2) &
-    - (bx(:,:)**2-by(:,:)**2))/x(:,:)
-  fx(:,:) = ro(:,:)*vx(:,:)**2+p(:,:)
-  fz(:,:) = ro(:,:)*vz(:,:)*vx(:,:)
-  r(:,:) = - (ro(:,:)*(vx(:,:)**2))/x(:,:)
+  fx(:,:) = ro(:,:)*vx(:,:)**2 + p(:,:)
+  fz(:,:) = ro(:,:)*vx(:,:)*vz(:,:)
+  r(:,:)  =-ro(:,:)*vx(:,:)**2/x(:,:)
   CALL mlw2d1st(rvx,fx,fz,rvxn,drvx,ix,jx,dt,dx,dz)
   CALL mlw2dsrc1st(r,rvxn,drvx,ix,jx,dt,dx,dz)
 
-  fx(:,:) = ro(:,:)*vx(:,:)*vy(:,:)-bx(:,:)*by(:,:)
-  fz(:,:) = ro(:,:)*vz(:,:)*vy(:,:)-bz(:,:)*by(:,:)
-  r(:,:) = -2.d0 * fx(:,:)/x(:,:)
-  CALL mlw2d1st(rvy,fx,fz,rvyn,drvy,ix,jx,dt,dx,dz)
-  CALL mlw2dsrc1st(r,rvyn,drvy,ix,jx,dt,dx,dz)
-
-  fx(:,:) = ro(:,:)*vx(:,:)*vz(:,:)-bx(:,:)*bz(:,:)
-  fz(:,:) = ro(:,:)*vz(:,:)**2+p(:,:)+0.5d0*b2(:,:)-bz(:,:)**2
-  r(:,:) = - fx(:,:)/x(:,:)
   fx(:,:) = ro(:,:)*vx(:,:)*vz(:,:)
-  fz(:,:) = ro(:,:)*vz(:,:)**2+p(:,:)
-  r(:,:) = - fx(:,:)/x(:,:)
+  fz(:,:) = ro(:,:)*vz(:,:)**2 + p(:,:)
+  r(:,:)  =-ro(:,:)*vx(:,:)*vz(:,:)/x(:,:)
   CALL mlw2d1st(rvz,fx,fz,rvzn,drvz,ix,jx,dt,dx,dz)
   CALL mlw2dsrc1st(r,rvzn,drvz,ix,jx,dt,dx,dz)
 
-  fx(:,:) = (gm/(gm-1.d0)*p(:,:) + 0.5d0*ro(:,:)*v2(:,:))*vx(:,:)& 
-    + (ey(:,:)*bz(:,:)-ez(:,:)*by(:,:))
-  fz(:,:) = (gm/(gm-1.d0)*p(:,:) + 0.5d0*ro(:,:)*v2(:,:))*vz(:,:)&
-    + (ex(:,:)*by(:,:)-ey(:,:)*bx(:,:))
-  r(:,:) = -fx(:,:) / x(:,:)
-  fx(:,:) = (gm/(gm-1.d0)*p(:,:) + 0.5d0*ro(:,:)*v2(:,:))*vx(:,:)
-  fz(:,:) = (gm/(gm-1.d0)*p(:,:) + 0.5d0*ro(:,:)*v2(:,:))*vz(:,:)
-  r(:,:) = -fx(:,:) / x(:,:)
+  fx(:,:) = (etot(:,:)+p(:,:))*vx(:,:)
+  fz(:,:) = (etot(:,:)+p(:,:))*vz(:,:)
+  r(:,:)  =-(etot(:,:)+p(:,:))*vx(:,:)/x(:,:)
   CALL mlw2d1st(etot,fx,fz,etotn,detot,ix,jx,dt,dx,dz)
   CALL mlw2dsrc1st(r,etotn,detot,ix,jx,dt,dx,dz)
 
-  fx(:,:) = 0.d0
-  fz(:,:) = -ey(:,:)
-  r(:,:)=0.d0
-  CALL mlw2d1st(bx,fx,fz,bxn,dbx,ix,jx,dt,dx,dz)
-  ! CALL mlw2dsrc1st()
-
-  ! u(:,:) = by(:,:)
-  fx(:,:) = -ez(:,:)
-  fz(:,:) = ex(:,:)
-  r(:,:) = 0.d0
-  CALL mlw2d1st(by,fx,fz,byn,dby,ix,jx,dt,dx,dz)
-  ! CALL mlw2dsrc1st()
-
-  ! u(:,:) = bz(:,:)
-  fx(:,:) = ey(:,:)
-  fz(:,:) = 0.d0
-  r(:,:) = - fx(:,:) / x(:,:)
-  CALL mlw2d1st(bz,fx,fz,bzn,dbz,ix,jx,dt,dx,dz)
-  CALL mlw2dsrc1st(r,bzn,dbz,ix,jx,dt,dx,dz)
-
-  !  get half step value
-  vxn(:,:) = rvxn(:,:) / ron(:,:)
-  vyn(:,:) = rvyn(:,:) / ron(:,:)
-  vzn(:,:) = rvzn(:,:) / ron(:,:)
+!!!!!!!!!
   
-  ! (get pn & e_n)
+  ! (get *n values)
+  vxn(:,:) = rvxn(:,:) / ron(:,:)
+  vzn(:,:) = rvzn(:,:) / ron(:,:)
   CALL calc_p(ron,pn,vxn,vyn,vzn,bxn,byn,bzn,etotn,gm,ix,jx)
-  CALL calc_e(bxn,byn,bzn,vxn,vyn,vzn,exn,eyn,ezn)
+!  CALL calc_e(bxn,byn,bzn,vxn,vyn,vzn,exn,eyn,ezn)
 
   v2n(:,:) = vxn(:,:)**2+vyn(:,:)**2+vzn(:,:)**2
   b2n(:,:) = bxn(:,:)**2+byn(:,:)**2+bxn(:,:)**2
@@ -307,66 +250,33 @@ PROGRAM main
   !! 2nd STEP
   !========================================
 
-  fx(:,:) = ron(:,:)*vxn(:,:)
-  fz(:,:) = ron(:,:)*vzn(:,:)
-  r(:,:) = -fx(:,:) / xm(:,:)
+
+  fx(:,:)=ron(:,:)*vxn(:,:)
+  fz(:,:)=ron(:,:)*vzn(:,:)
+  r(:,:)=-ron(:,:)*vxn(:,:)/xm(:,:)
   CALL mlw2d2nd(fx,fz,dro,ix,jx,dt,dx,dz)
   CALL mlw2dsrc2nd(dro,r,ix,jx,dt,dx,dz)
 
-  fx(:,:) = ron(:,:)*vxn(:,:)**2+pn(:,:)+0.5d0*b2n(:,:)-bxn(:,:)**2
-  fz(:,:) = ron(:,:)*vzn(:,:)*vxn(:,:)-bzn(:,:)*bxn(:,:)
-  r(:,:) = - (ron(:,:)*(vxn(:,:)**2-vyn(:,:)**2)&
-    -(bxn(:,:)**2-byn(:,:)**2)) / xm(:,:)
-  fx(:,:) = ron(:,:)*vxn(:,:)**2+pn(:,:)
-  fz(:,:) = ron(:,:)*vzn(:,:)*vxn(:,:)
-  r(:,:) = - (ron(:,:)*(vxn(:,:)**2)) / xm(:,:)
+  fx(:,:)=ron(:,:)*vxn(:,:)**2+pn(:,:)
+  fz(:,:)=ron(:,:)*vxn(:,:)*vzn(:,:)
+  r(:,:)=-ron(:,:)*vxn(:,:)**2/xm(:,:)
   CALL mlw2d2nd(fx,fz,drvx,ix,jx,dt,dx,dz)
   CALL mlw2dsrc2nd(drvx,r,ix,jx,dt,dx,dz)
 
-  fx(:,:) = ron(:,:)*vxn(:,:)*vyn(:,:) - bxn(:,:)*byn(:,:)
-  fz(:,:) = ron(:,:)*vzn(:,:)*vyn(:,:)-bzn(:,:)*byn(:,:)
-  r(:,:) = -2.d0 * fx(:,:)/xm(:,:)
-  CALL mlw2d2nd(fx,fz,drvy,ix,jx,dt,dx,dz)
-  CALL mlw2dsrc2nd(drvy,r,ix,jx,dt,dx,dz)
-
-  fx(:,:) = ron(:,:)*vxn(:,:)*vzn(:,:)-bxn(:,:)*bzn(:,:)
-  fz(:,:) = ron(:,:)*vzn(:,:)**2+pn(:,:)+0.5d0*b2n(:,:)-bzn(:,:)**2
-  r(:,:) = - fx(:,:)/xm(:,:)
-  fx(:,:) = ron(:,:)*vxn(:,:)*vzn(:,:)
-  fz(:,:) = ron(:,:)*vzn(:,:)**2+pn(:,:)
-  r(:,:) = - fx(:,:)/xm(:,:)
+  fx(:,:)=ron(:,:)*vxn(:,:)*vzn(:,:)
+  fz(:,:)=ron(:,:)*vzn(:,:)**2+pn(:,:)
+  r(:,:)=-ron(:,:)*vxn(:,:)*vzn(:,:)/xm(:,:)
   CALL mlw2d2nd(fx,fz,drvz,ix,jx,dt,dx,dz)
   CALL mlw2dsrc2nd(drvz,r,ix,jx,dt,dx,dz)
 
-  fx(:,:) = (gm/(gm-1.d0)*pn(:,:) + 0.5d0*ron(:,:)*v2n(:,:))*vxn(:,:)&
-    + (eyn(:,:)*bzn(:,:)-ezn(:,:)*byn(:,:))
-  fz(:,:) = (gm/(gm-1.d0)*pn(:,:) + 0.5d0*ron(:,:)*v2n(:,:))*vzn(:,:)&
-    + (exn(:,:)*byn(:,:)-eyn(:,:)*bxn(:,:))
-  r(:,:) = -fx(:,:) / xm(:,:)
-  fx(:,:) = (gm/(gm-1.d0)*pn(:,:) + 0.5d0*ron(:,:)*v2n(:,:))*vxn(:,:)
-  fz(:,:) = (gm/(gm-1.d0)*pn(:,:) + 0.5d0*ron(:,:)*v2n(:,:))*vzn(:,:)
-  r(:,:) = -fx(:,:) / xm(:,:)
+  fx(:,:)=(etotn(:,:)+pn(:,:))*vxn(:,:)
+  fz(:,:)=(etotn(:,:)+pn(:,:))*vzn(:,:)
+  r(:,:)=-(etotn(:,:)+pn(:,:))*vxn(:,:)/xm(:,:)
   CALL mlw2d2nd(fx,fz,detot,ix,jx,dt,dx,dz)
   CALL mlw2dsrc2nd(detot,r,ix,jx,dt,dx,dz)
 
-  fx(:,:) = 0.d0
-  fz(:,:) = -eyn(:,:)
-  r(:,:)=0.d0
-  CALL mlw2d2nd(fx,fz,dbx,ix,jx,dt,dx,dz)
-  ! CALL mlw2dsrc2nd()
+!!!!!!!!!!
 
-  fx(:,:) = -ezn(:,:)
-  fz(:,:) = exn(:,:)
-  r(:,:) = 0.d0
-  CALL mlw2d2nd(fx,fz,dby,ix,jx,dt,dx,dz)
-  ! CALL mlw2dsrc2nd()
-
-  ! u(:,:) = bz(:,:)
-  fx(:,:) = eyn(:,:)
-  fz(:,:) = 0.d0
-  r(:,:) = - fx(:,:) / xm(:,:)
-  CALL mlw2d2nd(fx,fz,dbz,ix,jx,dt,dx,dz)
-  CALL mlw2dsrc2nd(dbz,r,ix,jx,dt,dx,dz)
 
 
   !========================================
@@ -383,37 +293,26 @@ PROGRAM main
 
   CALL arvis2d(kx,kz,ro,dro,ix,jx,dt,dx,dz)
   CALL arvis2d(kx,kz,rvx,drvx,ix,jx,dt,dx,dz)
-  CALL arvis2d(kx,kz,rvy,drvy,ix,jx,dt,dx,dz)
   CALL arvis2d(kx,kz,rvz,drvz,ix,jx,dt,dx,dz)
   CALL arvis2d(kx,kz,etot,detot,ix,jx,dt,dx,dz)
-  CALL arvis2d(kx,kz,bx,dbx,ix,jx,dt,dx,dz)
-  CALL arvis2d(kx,kz,by,dby,ix,jx,dt,dx,dz)
-  CALL arvis2d(kx,kz,bz,dbz,ix,jx,dt,dx,dz)
 
   !========================================
   !! Update values
   !========================================
   ro(:,:) = ro(:,:) + dro(:,:)
   rvx(:,:) = rvx(:,:) + drvx(:,:)
-  rvy(:,:) = rvy(:,:) + drvy(:,:)
   rvz(:,:) = rvz(:,:) + drvz(:,:)
-  vx(:,:) = rvx(:,:)/ro(:,:)
-  vy(:,:) = rvy(:,:)/ro(:,:)
-  vz(:,:) = rvz(:,:)/ro(:,:)
   etot(:,:) = etot(:,:) + detot(:,:)
-  bx(:,:) = bx(:,:) + dbx(:,:)
-  by(:,:) = by(:,:) + dby(:,:)
-  bz(:,:) = bz(:,:) + dbz(:,:)
+
   vx(:,:) = rvx(:,:)/ro(:,:)
-  vy(:,:) = rvy(:,:)/ro(:,:)
   vz(:,:) = rvz(:,:)/ro(:,:)
 
-  !CALL calc_p(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
-
+  
 
   !========================================
   !! Apply boundary conditions
   !========================================
+
   CALL bc(ro,0,0,margin,ix,jx)
   CALL bc(ro,1,2,margin,ix,jx)
   CALL bc(ro,2,2,margin,ix,jx)
@@ -423,38 +322,17 @@ PROGRAM main
   CALL bc(vx,1,2,margin,ix,jx)
   CALL bc(vx,2,2,margin,ix,jx)
   CALL bc(vx,3,1,margin,ix,jx)
-
-  CALL bc(vy,0,0,margin,ix,jx)
-  CALL bc(vy,1,2,margin,ix,jx)
-  CALL bc(vy,2,2,margin,ix,jx)
-  CALL bc(vy,3,1,margin,ix,jx)
-
+  
   CALL bc(vz,0,1,margin,ix,jx)
   CALL bc(vz,1,2,margin,ix,jx)
   CALL bc(vz,2,2,margin,ix,jx)
   CALL bc(vz,3,0,margin,ix,jx)
-
-  CALL bc(bx,0,1,margin,ix,jx)
-  CALL bc(bx,1,2,margin,ix,jx)
-  CALL bc(bx,2,2,margin,ix,jx)
-  CALL bc(bx,3,1,margin,ix,jx)
-
-  CALL bc(by,0,1,margin,ix,jx)
-  CALL bc(by,1,2,margin,ix,jx)
-  CALL bc(by,2,2,margin,ix,jx)
-  CALL bc(by,3,1,margin,ix,jx)
-
-  CALL bc(bz,0,1,margin,ix,jx)
-  CALL bc(bz,1,2,margin,ix,jx)
-  CALL bc(bz,2,2,margin,ix,jx)
-  CALL bc(bz,3,0,margin,ix,jx)
 
   CALL bc(etot,0,0,margin,ix,jx)
   CALL bc(etot,1,2,margin,ix,jx)
   CALL bc(etot,2,2,margin,ix,jx)
   CALL bc(etot,3,0,margin,ix,jx)
 
-  CALL calc_e(bx,by,bz,vx,vy,vz,ex,ey,ez)
   CALL calc_p(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
 
   ns = ns+1
@@ -467,11 +345,7 @@ PROGRAM main
     CALL write_0d_dble("t.dat",t)
     CALL write_2d_dble("ro.dat",ro)
     CALL write_2d_dble("vx.dat",vx)
-    CALL write_2d_dble("vy.dat",vy)
     CALL write_2d_dble("vz.dat",vz)
-    CALL write_2d_dble("bx.dat",bx)
-    CALL write_2d_dble("by.dat",by)
-    CALL write_2d_dble("bz.dat",bz)
     CALL write_2d_dble("p.dat",p)
     CALL write_2d_dble('etot.dat',etot)
     write(*,foutmsg) ns,t,nd

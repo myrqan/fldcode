@@ -17,8 +17,8 @@ program main
   character(len=100) :: formatoutdata,formatoutmessage,formatstopmessage
   integer :: mfile
   integer,parameter :: margin = 1
-  integer,parameter :: grid_x = 200
-  integer,parameter :: grid_z = 200
+  integer,parameter :: grid_x = 100
+  integer,parameter :: grid_z = 100
   integer,parameter :: ix=2*margin+grid_x
   integer,parameter :: jx=2*margin+grid_z
   integer::grid_ary(2)
