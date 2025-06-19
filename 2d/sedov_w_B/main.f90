@@ -17,7 +17,7 @@ PROGRAM main
   IMPLICIT NONE
   DOUBLE PRECISION,PARAMETER :: pi = 4.d0*ATAN(1.d0)
   CHARACTER(100) :: foutmsg,fstopmsg
-  INTEGER,PARAMETER :: margin = 1
+  INTEGER,PARAMETER :: margin = 3
   INTEGER,PARAMETER :: grid_x = 500
   INTEGER,PARAMETER :: grid_z = 500
   INTEGER,PARAMETER :: ix = 2*margin+grid_x
@@ -31,7 +31,7 @@ PROGRAM main
   DOUBLE PRECISION :: ro(ix,jx),vx(ix,jx),vy(ix,jx),vz(ix,jx),&
     bx(ix,jx),by(ix,jx),bz(ix,jx),&
     ex(ix,jx),ey(ix,jx),ez(ix,jx),&
-    p(ix,jx),etot(ix,jx)
+    p(ix,jx),etot(ix,jx),ay(ix,jx)
   DOUBLE PRECISION :: ron(ix,jx),vxn(ix,jx),vyn(ix,jx),vzn(ix,jx),&
     bxn(ix,jx),byn(ix,jx),bzn(ix,jx),&
     exn(ix,jx),eyn(ix,jx),ezn(ix,jx),&
@@ -39,7 +39,7 @@ PROGRAM main
   DOUBLE PRECISION :: rvx(ix,jx),rvy(ix,jx),rvz(ix,jx)
   DOUBLE PRECISION :: rvxn(ix,jx),rvyn(ix,jx),rvzn(ix,jx)
   DOUBLE PRECISION :: dro(ix,jx),drvx(ix,jx),drvy(ix,jx),drvz(ix,jx),&
-    detot(ix,jx),dbx(ix,jx),dby(ix,jx),dbz(ix,jx)
+    detot(ix,jx),dbx(ix,jx),dby(ix,jx),dbz(ix,jx),day(ix,jx)
   DOUBLE PRECISION :: v2(ix,jx),v2n(ix,jx),b2(ix,jx),b2n(ix,jx)
   DOUBLE PRECISION :: kx(ix,jx),kz(ix,jx),qv
   DOUBLE PRECISION,PARAMETER :: gm = 5.d0/3.d0
@@ -68,7 +68,7 @@ PROGRAM main
   ro(:,:)=0.d0;vx(:,:)=0.d0;vy(:,:)=0.d0;vz(:,:)=0.d0;
   bx(:,:)=0.d0;by(:,:)=0.d0;bz(:,:)=0.d0;
   ex(:,:)=0.d0;ey(:,:)=0.d0;ez(:,:)=0.d0;
-  p(:,:)=0.d0;etot(:,:)=0.d0
+  p(:,:)=0.d0;etot(:,:)=0.d0;ay(:,:)=0.d0
   ron(:,:)=0.d0;vxn(:,:)=0.d0;vyn(:,:)=0.d0;vzn(:,:)=0.d0;
   bxn(:,:)=0.d0;byn(:,:)=0.d0;bzn(:,:)=0.d0;
   exn(:,:)=0.d0;eyn(:,:)=0.d0;ezn(:,:)=0.d0;
@@ -77,6 +77,7 @@ PROGRAM main
   rvxn(:,:)=0.d0;rvyn(:,:)=0.d0;rvzn(:,:)=0.d0
   dro(:,:)=0.d0;drvx(:,:)=0.d0;drvy(:,:)=0.d0;drvz(:,:)=0.d0;
   detot(:,:)=0.d0;dbx(:,:)=0.d0;dby(:,:)=0.d0;dbz(:,:)=0.d0
+  day(:,:)=0.d0
   v2(:,:)=0.d0;b2(:,:)=0.d0;v2n(:,:)=0.d0;b2n(:,:)=0.d0
   kx(:,:)=0.d0;kz(:,:)=0.d0;qv=0.d0
 
@@ -84,8 +85,8 @@ PROGRAM main
   !========================================
   !!  time parameters
   !========================================
-  tend = 6.0d0 !! end of calc.
-  dtout = 0.5d-1 !! time interval for output
+  tend = 3.0d0 !! end of calc.
+  dtout = 0.25d0 !! time interval for output
   t = 0.d0
   tout = 0.d0
   ns = 0 !! # of steps
@@ -139,41 +140,49 @@ PROGRAM main
 
 
   ! (apply BC for ro,v,b,p)
+  !0220
   CALL bc(ro,0,0,margin,ix,jx)
   CALL bc(ro,1,2,margin,ix,jx)
   CALL bc(ro,2,2,margin,ix,jx)
   CALL bc(ro,3,0,margin,ix,jx)
 
+  !0221
   CALL bc(vx,0,0,margin,ix,jx)
   CALL bc(vx,1,2,margin,ix,jx)
   CALL bc(vx,2,2,margin,ix,jx)
   CALL bc(vx,3,1,margin,ix,jx)
 
+  !0221
   CALL bc(vy,0,0,margin,ix,jx)
   CALL bc(vy,1,2,margin,ix,jx)
   CALL bc(vy,2,2,margin,ix,jx)
   CALL bc(vy,3,1,margin,ix,jx)
 
+  !1220
   CALL bc(vz,0,1,margin,ix,jx)
   CALL bc(vz,1,2,margin,ix,jx)
   CALL bc(vz,2,2,margin,ix,jx)
   CALL bc(vz,3,0,margin,ix,jx)
 
+  !1221
   CALL bc(bx,0,1,margin,ix,jx)
   CALL bc(bx,1,2,margin,ix,jx)
   CALL bc(bx,2,2,margin,ix,jx)
   CALL bc(bx,3,1,margin,ix,jx)
 
+  !1221
   CALL bc(by,0,1,margin,ix,jx)
   CALL bc(by,1,2,margin,ix,jx)
   CALL bc(by,2,2,margin,ix,jx)
   CALL bc(by,3,1,margin,ix,jx)
 
-  CALL bc(bz,0,1,margin,ix,jx)
+  !1220
+  CALL bc(bz,0,0,margin,ix,jx)
   CALL bc(bz,1,2,margin,ix,jx)
   CALL bc(bz,2,2,margin,ix,jx)
   CALL bc(bz,3,0,margin,ix,jx)
 
+  !0220
   CALL bc(p,0,0,margin,ix,jx)
   CALL bc(p,1,2,margin,ix,jx)
   CALL bc(p,2,2,margin,ix,jx)
@@ -181,6 +190,8 @@ PROGRAM main
 
   CALL calc_e(bx,by,bz,vx,vy,vz,ex,ey,ez)
   CALL calc_etot(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
+  CALL calc_ay(vx,vz,bx,bz,day,ix,jx)
+  ay(:,:) = -ey(:,:)
 
   !========================================
   !! data output (1st time)
@@ -197,6 +208,7 @@ PROGRAM main
   CALL write_2d_dble("bz.dat",bz)
   CALL write_2d_dble("p.dat",p)
   CALL write_2d_dble('etot.dat',etot)
+  CALL write_2d_dble("ay.dat",ay)
   write(*,foutmsg) ns,t,nd
   nd = nd + 1
   tout = tout + dtout
@@ -414,41 +426,49 @@ PROGRAM main
   !========================================
   !! Apply boundary conditions
   !========================================
+  !0220
   CALL bc(ro,0,0,margin,ix,jx)
   CALL bc(ro,1,2,margin,ix,jx)
   CALL bc(ro,2,2,margin,ix,jx)
   CALL bc(ro,3,0,margin,ix,jx)
 
+  !0221
   CALL bc(vx,0,0,margin,ix,jx)
   CALL bc(vx,1,2,margin,ix,jx)
   CALL bc(vx,2,2,margin,ix,jx)
   CALL bc(vx,3,1,margin,ix,jx)
 
+  !0221
   CALL bc(vy,0,0,margin,ix,jx)
   CALL bc(vy,1,2,margin,ix,jx)
   CALL bc(vy,2,2,margin,ix,jx)
   CALL bc(vy,3,1,margin,ix,jx)
 
+  !1220
   CALL bc(vz,0,1,margin,ix,jx)
   CALL bc(vz,1,2,margin,ix,jx)
   CALL bc(vz,2,2,margin,ix,jx)
   CALL bc(vz,3,0,margin,ix,jx)
 
+  !1221
   CALL bc(bx,0,1,margin,ix,jx)
   CALL bc(bx,1,2,margin,ix,jx)
   CALL bc(bx,2,2,margin,ix,jx)
   CALL bc(bx,3,1,margin,ix,jx)
 
+  !1221
   CALL bc(by,0,1,margin,ix,jx)
   CALL bc(by,1,2,margin,ix,jx)
   CALL bc(by,2,2,margin,ix,jx)
   CALL bc(by,3,1,margin,ix,jx)
 
-  CALL bc(bz,0,1,margin,ix,jx)
+  !1220
+  CALL bc(bz,0,0,margin,ix,jx)
   CALL bc(bz,1,2,margin,ix,jx)
   CALL bc(bz,2,2,margin,ix,jx)
   CALL bc(bz,3,0,margin,ix,jx)
 
+  !0220
   CALL bc(etot,0,0,margin,ix,jx)
   CALL bc(etot,1,2,margin,ix,jx)
   CALL bc(etot,2,2,margin,ix,jx)
@@ -456,6 +476,8 @@ PROGRAM main
 
   CALL calc_e(bx,by,bz,vx,vy,vz,ex,ey,ez)
   CALL calc_p(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
+  
+  ay(:,:) = ay(:,:) - ey (:,:) * dt
 
   ns = ns+1
   t = t+dt
@@ -474,6 +496,8 @@ PROGRAM main
     CALL write_2d_dble("bz.dat",bz)
     CALL write_2d_dble("p.dat",p)
     CALL write_2d_dble('etot.dat',etot)
+    CALL write_2d_dble("ay.dat",ay)
+
     write(*,foutmsg) ns,t,nd
     tout = tout + dtout
     nd = nd + 1

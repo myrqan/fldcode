@@ -38,4 +38,13 @@ subroutine calc_p(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
   p(:,:) = (gm-1.d0)&
     *(etot(:,:)-0.5d0*ro(:,:)*v2(:,:)-0.5d0*b2(:,:))
 end subroutine calc_p
+
+subroutine calc_ay(vx,vz,bx,bz,day,ix,jx)
+  INTEGER,INTENT(IN):: ix,jx
+  DOUBLE PRECISION,INTENT(IN) :: vx(ix,jx),vz(ix,jx),bx(ix,jx),bz(ix,jx)
+  DOUBLE PRECISION,INTENT(INOUT) :: day(ix,jx)
+
+  day(:,:) = vz(:,:)*bx(:,:) - vx(:,:)*bz(:,:)
+end subroutine
 end module calculate_variables
+

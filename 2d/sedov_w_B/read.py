@@ -25,7 +25,7 @@ def read_t(file):
 def read_x2d(file,ix,jx):
     f = FortranFile(file,'r')
     #read_prop(f)
-    x = f.read_record('f8').reshape(ix,jx,order='F')
+    x = f.read_record('f8').reshape(ix,jx,order='F').T
     return np.array(x)
 
 def read_phys2d(file,ix,jx):
@@ -36,7 +36,7 @@ def read_phys2d(file,ix,jx):
     phys = []
     while True:
         try:
-            phys.append(f.read_record('f8').reshape(ix,jx,order='F'))
+            phys.append(f.read_record('f8').reshape(ix,jx,order='F').T)
         except:
             break
     return np.array(phys)
