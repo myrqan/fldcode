@@ -22,11 +22,11 @@ ay= read.read_phys2d('ay.dat',ix,jx)
 
 nd = np.size(t)
 psi = np.zeros((nd,ix,jx))
-for i in range(nd):
-    psi[i,:,:] = x[:,:] * ay[i,:,:]
+#for i in range(nd):
+    #psi[i,:,:] = x[:,:] * ay[i,:,:]
 
 
-print(psi.shape)
+#print(psi.shape)
 
 #print(x[0,:])
 
@@ -54,8 +54,8 @@ for n in range(nd):
     tle = r'$t=$ '+str(t[n])[:7]+'/ Density, Poloidal Magnetic Field line'
     im1 = ax.pcolormesh(x,z,ro[n],cmap='plasma',vmin=0,vmax=3)
     #im1 = ax.pcolormesh(x,z,bz[n],cmap='plasma')
-    im2 = ax.contour(x,z,psi[n],colors='g')
-    #im2 = ax.streamplot(X,Z,bx[n],bz[n],density=0.75,color='w')
+    #im2 = ax.contour(x,z,psi[n],colors='g')
+    im2 = ax.streamplot(X,Z,bx[n],bz[n],density=0.75,color='w')
     cbar1 = fig.colorbar(im1,ax=ax)
     ax.set_title(tle)
 

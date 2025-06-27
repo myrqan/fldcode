@@ -10,8 +10,8 @@ MODULE model
 
       !------------------------------
       ! these values can be changed
-      xmax = 1.d0; zmax = 1.d0
-      xmin = 0.0d0; zmin = 0.d0
+      xmax = 1.d0; zmax = 0.5d0
+      xmin = 0.04d0; zmin = -0.5d0
       !xmax = 1.d0; zmax = 1.d0
       !xmin = 0.d0; zmin = -1.d0
       !------------------------------
@@ -22,7 +22,7 @@ MODULE model
       dz = (zmax-zmin) / dble(jjx)
 
       ! xmin replace 
-      xmin = dx
+      !xmin = dx
 
       x(margin,:) = xmin - 0.5d0*dx
       z(:,margin) = zmin - 0.5d0*dz
@@ -68,7 +68,7 @@ MODULE model
 
       ro(:,:)=1.d0
       vx(:,:)=0.d0; vy(:,:)=0.d0; vz(:,:)=0.d0
-      bx(:,:)=0.d0; by(:,:)=0.d0; bz(:,:)=1.d-2
+      bx(:,:)=0.d0; by(:,:)=0.d0; bz(:,:)=1.d-1
 
       do jj = 1,jx
         do ii = 1,ix

@@ -18,8 +18,8 @@ PROGRAM main
   DOUBLE PRECISION,PARAMETER :: pi = 4.d0*ATAN(1.d0)
   CHARACTER(100) :: foutmsg,fstopmsg
   INTEGER,PARAMETER :: margin = 3
-  INTEGER,PARAMETER :: grid_x = 500
-  INTEGER,PARAMETER :: grid_z = 500
+  INTEGER,PARAMETER :: grid_x = 300
+  INTEGER,PARAMETER :: grid_z = 300
   INTEGER,PARAMETER :: ix = 2*margin+grid_x
   INTEGER,PARAMETER :: jx = 2*margin+grid_z
   INTEGER :: ixjx(2) = (/ix,jx/)
@@ -86,7 +86,7 @@ PROGRAM main
   !!  time parameters
   !========================================
   tend = 3.0d0 !! end of calc.
-  dtout = 0.25d0 !! time interval for output
+  dtout = 0.1d-1 !! time interval for output
   t = 0.d0
   tout = 0.d0
   ns = 0 !! # of steps
@@ -385,7 +385,7 @@ PROGRAM main
   !!  Artificial Viscosity
   !========================================
 
-  qv = 3.d0
+  qv = 5.d0
   if(ns == 0) then
     CALL put_param_dble("qv:",qv)
   endif
