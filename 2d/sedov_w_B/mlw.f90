@@ -1,6 +1,7 @@
 module mlw
   implicit none
 contains
+
   subroutine mlw2d1st(u,fx,fz,un,du,ix,jx,dt,dx,dz)
     INTEGER,INTENT(IN)::ix,jx
     DOUBLE PRECISION,INTENT(IN)::dt,dx,dz
@@ -15,7 +16,7 @@ contains
     endif
 
       un(i,j) = 0.25d0 * (u(i,j)+u(i+1,j)+u(i,j+1)+u(i+1,j+1))&
-                - dt/dx * 0.5d0 * (fx(i+1,j)-fx(i,j)+fx(i+1,j+1)-fx(i,j+1))&
+               - dt/dx * 0.5d0 * (fx(i+1,j)-fx(i,j)+fx(i+1,j+1)-fx(i,j+1))&
                 - dt/dz * 0.5d0 * (fz(i,j+1)-fz(i,j)+fz(i+1,j+1)-fz(i+1,j))
     enddo
     enddo

@@ -6,6 +6,7 @@ module arvis
       double precision,intent(inout) :: kx(ix,jx), kz(ix,jx)
       integer,intent(in) :: ix,jx
       integer :: i,j
+      kx(:,:) = 0.d0;kz(:,:)=0.d0
       do j = 1,jx-1
       do i = 1,ix-1
        !qx(i,j)=qav*dxm(i)*max(zero,abs(vx(i+1,j)-vx(i,j))-1.0e-4)
@@ -28,7 +29,6 @@ module arvis
                           - kx(i-1,j)/dx * (u(i  ,j)-u(i-1,j))))&
                   +dt/dz* ((kz(i  ,j)/dz * (u(i,j+1)-u(i,  j))&
                           - kz(i,j-1)/dz * (u(i,  j)-u(i,j-1))))
-      
       enddo
       enddo
     end subroutine arvis2d

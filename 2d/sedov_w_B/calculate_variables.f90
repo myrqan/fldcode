@@ -4,7 +4,7 @@ contains
 subroutine calc_e(bx,by,bz,vx,vy,vz,ex,ey,ez)
   DOUBLE PRECISION,INTENT(IN) :: bx(:,:),by(:,:),bz(:,:),&
     vx(:,:),vy(:,:),vz(:,:)
-  DOUBLE PRECISION,INTENT(INOUT) :: ex(:,:),ey(:,:),ez(:,:)
+  DOUBLE PRECISION,INTENT(OUT) :: ex(:,:),ey(:,:),ez(:,:)
 
   ex(:,:) = -vy(:,:)*bz(:,:) + vz(:,:)*by(:,:)
   ey(:,:) = -vz(:,:)*bx(:,:) + vx(:,:)*bz(:,:)
@@ -14,7 +14,7 @@ end subroutine calc_e
 subroutine calc_etot(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
   DOUBLE PRECISION,INTENT(IN) :: ro(:,:),p(:,:),&
     vx(:,:),vy(:,:),vz(:,:),bx(:,:),by(:,:),bz(:,:),gm
-  DOUBLE PRECISION,INTENT(INOUT) :: etot(:,:)
+  DOUBLE PRECISION,INTENT(OUT) :: etot(:,:)
   INTEGER,INTENT(IN) :: ix,jx
   DOUBLE PRECISION :: v2(ix,jx), b2(ix,jx)
 
@@ -26,25 +26,28 @@ subroutine calc_etot(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
 end subroutine calc_etot
 
 subroutine calc_p(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
-  DOUBLE PRECISION,INTENT(IN) :: ro(:,:),vx(:,:),vy(:,:),&
-    vz(:,:),bx(:,:),by(:,:),bz(:,:),etot(:,:),gm
-  DOUBLE PRECISION,INTENT(INOUT) :: p(:,:)
+  DOUBLE PRECISION,INTENT(IN) :: ro(:,:),vx(:,:),vy(:,:),vz(:,:),&
+    bx(:,:),by(:,:),bz(:,:),etot(:,:),gm
+  DOUBLE PRECISION,INTENT(OUT) :: p(:,:)
   INTEGER,INTENT(IN) :: ix,jx
   DOUBLE PRECISION :: v2(ix,jx), b2(ix,jx)
+  INTEGER :: i,j
 
   v2(:,:) = vx(:,:)**2+vy(:,:)**2+vz(:,:)**2
   b2(:,:) = bx(:,:)**2+by(:,:)**2+bz(:,:)**2
 
   p(:,:) = (gm-1.d0)&
     *(etot(:,:)-0.5d0*ro(:,:)*v2(:,:)-0.5d0*b2(:,:))
+  
 end subroutine calc_p
 
-subroutine calc_ay(vx,vz,bx,bz,day,ix,jx)
+subroutine calc_ay(x,z,bx,by,bz,ix,jx,ay)
   INTEGER,INTENT(IN):: ix,jx
-  DOUBLE PRECISION,INTENT(IN) :: vx(ix,jx),vz(ix,jx),bx(ix,jx),bz(ix,jx)
-  DOUBLE PRECISION,INTENT(INOUT) :: day(ix,jx)
+  DOUBLE PRECISION,INTENT(IN) :: x(ix,jx),z(ix,jx),bx(ix,jx),by(ix,jx),bz(ix,jx)
+  DOUBLE PRECISION,INTENT(INOUT) :: ay(ix,jx)
+  
+  ay(:,:) = 0.5d0*bz(:,:)*x(:,:)
 
-  day(:,:) = vz(:,:)*bx(:,:) - vx(:,:)*bz(:,:)
 end subroutine
 end module calculate_variables
 

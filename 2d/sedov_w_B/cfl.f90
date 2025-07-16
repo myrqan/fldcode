@@ -4,8 +4,7 @@ module cfl
     subroutine calc_dt(rho,vx,vy,vz,p,bx,by,bz,gm,ix,jx,dt,dx,dz)
       integer,intent(in) :: ix,jx
       double precision,intent(in) :: rho(ix,jx),vx(ix,jx),vy(ix,jx),&
-        vz(ix,jx),p(ix,jx),&
-        bx(ix,jx), by(ix,jx), bz(ix,jx)
+        vz(ix,jx),p(ix,jx),bx(ix,jx),by(ix,jx),bz(ix,jx)
       double precision,intent(in) :: gm,dx,dz
       double precision,intent(inout) :: dt
       double precision :: dt_cfl,safety = 0.4d0
@@ -13,9 +12,10 @@ module cfl
       INTEGER :: i,j
       INTEGER :: iout, jout
       DOUBLE PRECISION :: dtmin = 1.d-15
+
       min_val = 1e20
-      do j = 2, jx-1
-      do i = 2, ix-1
+      do j = 1, jx
+      do i = 1, ix
         v2 = vx(i,j)**2 + vy(i,j)**2 + vz(i,j)**2
         va2 = (bx(i,j)**2 + by(i,j)**2 + bz(i,j)**2) / rho(i,j)
         vs2 = gm * p(i,j) / rho(i,j)
