@@ -17,9 +17,9 @@ PROGRAM main
   IMPLICIT NONE
   DOUBLE PRECISION,PARAMETER :: pi = 4.d0*ATAN(1.d0)
   CHARACTER(100) :: foutmsg,fstopmsg
-  INTEGER,PARAMETER :: margin = 3
-  INTEGER,PARAMETER :: grid_x = 300
-  INTEGER,PARAMETER :: grid_z = 500
+  INTEGER,PARAMETER :: margin = 1
+  INTEGER,PARAMETER :: grid_x = 200
+  INTEGER,PARAMETER :: grid_z = 200
   INTEGER,PARAMETER :: ix = 2*margin+grid_x
   INTEGER,PARAMETER :: jx = 2*margin+grid_z
   INTEGER :: ixjx(3) = (/ix,jx,margin/)
@@ -85,7 +85,7 @@ PROGRAM main
   !!  time parameters
   !========================================
   tend = 6.0d0 !! end of calculation
-  dtout = 0.01d-0!! time interval for output
+  dtout = 0.1d-0!! time interval for output
   t = 0.d0
   tout = 0.d0
   ns = 0 !! # of steps
@@ -341,7 +341,7 @@ PROGRAM main
     if(pn(i,j) < 0.d0) then
       !write(*,*) "pressure is negative at (i,j)=", i, j
       !write(*,*) "end of 1st step" 
-      pn(i,j) = 1.d-3
+      !pn(i,j) = 1.d-3
       !stop 
     endif
   enddo
@@ -424,7 +424,7 @@ PROGRAM main
       !write(*,*) "pressure is negative at (r,z)=", x(i,j), z(i,j)
       !write(*,*) "end of 2nd step" 
       !stop 
-      pn(i,j) = 1.d-3
+      !pn(i,j) = 1.d-3
     endif
   enddo
   enddo
@@ -435,7 +435,7 @@ PROGRAM main
   !!  Artificial Viscosity
   !========================================
 
-  qv = 5.d0
+  qv = 10.d0
   if(ns == 0) then
     CALL put_param_dble("qv:",qv)
   endif
@@ -534,7 +534,7 @@ PROGRAM main
      !write(*,*) "pressure:", p(i,j)j
      !write(*,*) "t=", t, "ns=", ns
      !stop 
-     p(i,j) = 1.d-3
+     !p(i,j) = 1.d-3
    endif
  enddo
  enddo

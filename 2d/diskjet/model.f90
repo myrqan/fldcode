@@ -10,7 +10,7 @@ MODULE model
 
       !------------------------------
       ! these values can be changed
-      xmax = 3.d0; zmax = 5.d0
+      xmax = 4.d0; zmax = 6.d0
       xmin = 0.1d0; zmin = 0.00d0
       !xmax = 1.d0; zmax = 1.d0
       !xmin = 0.d0; zmin = -1.d0
@@ -123,7 +123,7 @@ MODULE model
       do j=1,jx
       do i=1,ix
         dis = sqrt(x(i,j)**2 + z(i,j)**2)
-        ro_c = roc * exp(alpha * (gpot(i,j) - 1.d0))
+        ro_c = roc * exp(alpha * (-gpot(i,j) - 1.d0))
         ro_d = ( 1/(eth*(nn+1)) &
           * ( psi0 - gpot(i,j) - 1.d0/(2*(1-aa)) * x(i,j)**(2*aa-2) ) )**nn
         

@@ -81,8 +81,8 @@ ax.set_aspect('equal')
 
 n = 0
 for n in range(nd):
-    ax.set_xlim(0,1.5)
-    ax.set_ylim(0,1.5)
+    ax.set_xlim(0,3)
+    ax.set_ylim(0,5)
     tle = r'$t=$ '+str(t[n])[:7]+'/ Density, Poloidal Magnetic Field line'
     #im1 = ax.pcolormesh(x,z,np.log10(ro[n]),cmap='jet',vmin=0,vmax=3)
     im1 = ax.contourf(x, z, np.log10(ro[n]),
@@ -99,7 +99,7 @@ for n in range(nd):
     #im1 = ax.pcolormesh(x,z,np.sqrt(vx[n]**2+vz[n]**2),cmap='plasma',vmin=0,vmax=0.3)
     #im1 = ax.pcolormesh(x,z,np.log(pr[n]),cmap='plasma',vmin=-8,vmax=0)
     #im1 = ax.pcolormesh(x,z,bz[n],cmap='plasma')
-    im2 = ax.contour(x,z,ay[n],colors='w',levels=15)
+    im2 = ax.contour(x,z,ay[n],colors='w',levels=np.arange(0.01,0.5,0.01))
     im2.clabel(fmt='%5.4f')
     #im2 = ax.streamplot(X,Z,bx[n],bz[n],density=0.75,color='w')
     cbar1 = fig.colorbar(im1,ax=ax)
