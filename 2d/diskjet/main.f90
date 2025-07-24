@@ -17,8 +17,8 @@ PROGRAM main
   IMPLICIT NONE
   DOUBLE PRECISION,PARAMETER :: pi = 4.d0*ATAN(1.d0)
   CHARACTER(100) :: foutmsg,fstopmsg
-  INTEGER,PARAMETER :: margin = 1
-  INTEGER,PARAMETER :: grid_x = 200
+  INTEGER,PARAMETER :: margin = 2
+  INTEGER,PARAMETER :: grid_x = 150
   INTEGER,PARAMETER :: grid_z = 200
   INTEGER,PARAMETER :: ix = 2*margin+grid_x
   INTEGER,PARAMETER :: jx = 2*margin+grid_z

@@ -83,12 +83,12 @@ n = 0
 for n in range(nd):
     ax.set_xlim(0,3)
     ax.set_ylim(0,5)
-    tle = r'$t=$ '+str(t[n])[:7]+'/ Density, Poloidal Magnetic Field line'
+    tle = r'$t=$ '+str(t[n])[:7]
     #im1 = ax.pcolormesh(x,z,np.log10(ro[n]),cmap='jet',vmin=0,vmax=3)
     im1 = ax.contourf(x, z, np.log10(ro[n]),
                        levels=np.linspace(-4,1,11),extend='both',
                        vmin=-4,vmax=1,cmap='jet')
-    ax.set_title(r"Density $\log_{10}(\rho)$")
+    ax.set_title(tle+r" Density $\log_{10}(\rho)$")
     #ax.contour(x,z,ay[n],levels=20,colors='white',linewidths=0.5)
     #ax.set_title(r"$\log_{10}(\rho)$")
 

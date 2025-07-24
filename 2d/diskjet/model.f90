@@ -10,8 +10,8 @@ MODULE model
 
       !------------------------------
       ! these values can be changed
-      xmax = 4.d0; zmax = 6.d0
-      xmin = 0.1d0; zmin = 0.00d0
+      xmax = 3.d0; zmax = 5.d0
+      xmin = 0.05d0; zmin = 0.00d0
       !xmax = 1.d0; zmax = 1.d0
       !xmin = 0.d0; zmin = -1.d0
       !------------------------------
@@ -76,7 +76,7 @@ MODULE model
       alpha = 1.d0
       roc = 1.d-3
       eth = 5.d-2
-      emg = 2.d-2
+      emg = 1.d-2
 
       CALL put_param_dble("srad:",srad)
       CALL put_param_dble("aa:",aa)
@@ -123,7 +123,7 @@ MODULE model
       do j=1,jx
       do i=1,ix
         dis = sqrt(x(i,j)**2 + z(i,j)**2)
-        ro_c = roc * exp(alpha * (-gpot(i,j) - 1.d0))
+        ro_c = roc * exp(-alpha * (gpot(i,j) + 1.d0))
         ro_d = ( 1/(eth*(nn+1)) &
           * ( psi0 - gpot(i,j) - 1.d0/(2*(1-aa)) * x(i,j)**(2*aa-2) ) )**nn
         
@@ -140,7 +140,6 @@ MODULE model
 
       enddo
       enddo
-
 
       p(:,:) = eth * ro(:,:) ** (1.d0 + 1.d0/nn)
       vx(:,:) = 0.d0; vz(:,:) = 0.d0
