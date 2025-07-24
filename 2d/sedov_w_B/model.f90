@@ -70,7 +70,7 @@ MODULE model
 
       ro(:,:)=1.d0
       vx(:,:)=0.d0; vy(:,:)=0.d0; vz(:,:)=0.d0
-      bx(:,:)=0.d0; by(:,:)=0.d0; bz(:,:)=1.d-1
+      bx(:,:)=0.d0; by(:,:)=0.d0; bz(:,:)=1.d-3
 
       do jj = 1,jx
         do ii = 1,ix

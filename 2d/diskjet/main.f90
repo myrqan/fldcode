@@ -18,14 +18,15 @@ PROGRAM main
   DOUBLE PRECISION,PARAMETER :: pi = 4.d0*ATAN(1.d0)
   CHARACTER(100) :: foutmsg,fstopmsg
   INTEGER,PARAMETER :: margin = 3
-  INTEGER,PARAMETER :: grid_x = 400
-  INTEGER,PARAMETER :: grid_z = 400
+  INTEGER,PARAMETER :: grid_x = 300
+  INTEGER,PARAMETER :: grid_z = 500
   INTEGER,PARAMETER :: ix = 2*margin+grid_x
   INTEGER,PARAMETER :: jx = 2*margin+grid_z
-  INTEGER :: ixjx(2) = (/ix,jx/)
+  INTEGER :: ixjx(3) = (/ix,jx,margin/)
 
   DOUBLE PRECISION :: x(ix,jx),xm(ix,jx),dx
   DOUBLE PRECISION :: z(ix,jx),zm(ix,jx),dz
+  DOUBLE PRECISION :: gx(ix,jx),gxm(ix,jx),gz(ix,jx),gzm(ix,jx)
 
   DOUBLE PRECISION :: u(ix,jx),fx(ix,jx),fz(ix,jx),r(ix,jx)
   DOUBLE PRECISION :: ro(ix,jx),vx(ix,jx),vy(ix,jx),vz(ix,jx),&
@@ -62,6 +63,7 @@ PROGRAM main
 
   x(:,:)=0.d0;xm(:,:)=0.d0;dx=0.d0;
   z(:,:)=0.d0;zm(:,:)=0.d0;dz=0.d0;
+  gx(:,:)=0.d0;gxm(:,:)=0.d0;gz(:,:)=0.d0;gzm(:,:)=0.d0
   u(:,:)=0.d0;fx(:,:)=0.d0;fz(:,:)=0.d0;r(:,:)=0.d0
   ro(:,:)=0.d0;vx(:,:)=0.d0;vy(:,:)=0.d0;vz(:,:)=0.d0;
   bx(:,:)=0.d0;by(:,:)=0.d0;bz(:,:)=0.d0;
@@ -83,7 +85,7 @@ PROGRAM main
   !!  time parameters
   !========================================
   tend = 6.0d0 !! end of calculation
-  dtout = 0.5d-0!! time interval for output
+  dtout = 0.01d-0!! time interval for output
   t = 0.d0
   tout = 0.d0
   ns = 0 !! # of steps
@@ -104,8 +106,10 @@ PROGRAM main
   !========================================
 
   CALL make_grid(x,xm,dx,z,zm,dz,ix,jx,margin)
-  CALL sedov_with_b(ro,vx,vy,vz,bx,by,bz,p,x,z,ix,jx)
+  CALL diskjet(ro,vx,vy,vz,bx,by,bz,p,gx,gxm,gz,gzm,x,z,ix,jx,dx,dz)
+  !CALL sedov_with_b(ro,vx,vy,vz,bx,by,bz,p,x,z,ix,jx)
   CALL calc_ay(x,z,bx,by,bz,ix,jx,ay)
+  !gx(:,:)=0.d0;gz(:,:)=0.d0;gxm(:,:)=0.d0;gzm(:,:)=0.d0
 
 
   ! Apply boundary conditions
@@ -186,6 +190,29 @@ PROGRAM main
   CALL bc(p,2,2,margin,ix,jx)
   CALL bc(p,3,0,margin,ix,jx)
 
+ !! apply boudary conditions for g{x,z}(m)
+ !0221
+  CALL bc(gx,0,0,margin,ix,jx)
+  CALL bc(gx,1,2,margin,ix,jx)
+  CALL bc(gx,2,2,margin,ix,jx)
+  CALL bc(gx,3,1,margin,ix,jx)
+  !1220
+  CALL bc(gz,0,1,margin,ix,jx)
+  CALL bc(gz,1,2,margin,ix,jx)
+  CALL bc(gz,2,2,margin,ix,jx)
+  CALL bc(gz,3,0,margin,ix,jx)
+  !0221
+  CALL bc(gxm,0,0,margin,ix,jx)
+  CALL bc(gxm,1,2,margin,ix,jx)
+  CALL bc(gxm,2,2,margin,ix,jx)
+  CALL bc(gxm,3,1,margin,ix,jx)
+  !1220 
+  CALL bc(gzm,0,1,margin,ix,jx)
+  CALL bc(gzm,1,2,margin,ix,jx)
+  CALL bc(gzm,2,2,margin,ix,jx)
+  CALL bc(gzm,3,0,margin,ix,jx)
+
+
   CALL calc_e(bx,by,bz,vx,vy,vz,ex,ey,ez)
   CALL calc_etot(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
 
@@ -215,9 +242,12 @@ PROGRAM main
   main_loop:&
     do while(t < tend)
     !do while(ns < 10)
+!    if(mod(ns,10)==0) then
+!      write(*,*) "ns=", ns, "t=", t
+!    endif
 
   !! Calculate dt using CFL condition
-  CALL calc_dt(ro,vx,vy,vz,p,bx,by,bz,gm,ix,jx,dt,dx,dz)
+  CALL calc_dt(ro,vx,vy,vz,p,bx,by,bz,gm,ix,jx,dt,dx,dz,margin)
   
 
   !! initialize variables
@@ -236,39 +266,44 @@ PROGRAM main
   !========================================
   !! 1st STEP
   !========================================
-
+  !----- density-----!
   fx(:,:) = ro(:,:)*vx(:,:)
   fz(:,:) = ro(:,:)*vz(:,:)
   r(:,:) = -fx(:,:) / x(:,:)
   CALL mlw2d1st(ro,fx,fz,ron,dro,ix,jx,dt,dx,dz)
   CALL mlw2dsrc1st(r,ron,dro,ix,jx,dt,dx,dz)
 
+  !----- x-momentum -----!
   fx(:,:) = ro(:,:)*vx(:,:)**2+p(:,:)&
     +0.5d0*(-bx(:,:)**2+by(:,:)**2+bz(:,:)**2)
   fz(:,:) = ro(:,:)*vz(:,:)*vx(:,:)-bz(:,:)*bx(:,:)
   r(:,:) = - (ro(:,:)*(vx(:,:)**2-vy(:,:)**2) &
-    - (bx(:,:)**2-by(:,:)**2))/x(:,:)
+    - (bx(:,:)**2-by(:,:)**2))/x(:,:) + ro(:,:)*gx(:,:)
   CALL mlw2d1st(rvx,fx,fz,rvxn,drvx,ix,jx,dt,dx,dz)
   CALL mlw2dsrc1st(r,rvxn,drvx,ix,jx,dt,dx,dz)
 
+  !----- y-momentum -----!
   fx(:,:) = ro(:,:)*vx(:,:)*vy(:,:)-bx(:,:)*by(:,:)
   fz(:,:) = ro(:,:)*vz(:,:)*vy(:,:)-bz(:,:)*by(:,:)
   r(:,:) = -2.d0 * fx(:,:)/x(:,:)
   CALL mlw2d1st(rvy,fx,fz,rvyn,drvy,ix,jx,dt,dx,dz)
   CALL mlw2dsrc1st(r,rvyn,drvy,ix,jx,dt,dx,dz)
 
+  !----- z-momentum -----!
   fx(:,:) = ro(:,:)*vx(:,:)*vz(:,:)-bx(:,:)*bz(:,:)
   fz(:,:) = ro(:,:)*vz(:,:)**2+p(:,:)&
     +0.5d0*(bx(:,:)**2+by(:,:)**2-bz(:,:)**2)
-  r(:,:) = - fx(:,:)/x(:,:)
+  r(:,:) = - fx(:,:)/x(:,:) + ro(:,:)*gz(:,:)
   CALL mlw2d1st(rvz,fx,fz,rvzn,drvz,ix,jx,dt,dx,dz)
   CALL mlw2dsrc1st(r,rvzn,drvz,ix,jx,dt,dx,dz)
 
+  !----- energy -----!
   fx(:,:) = (gm/(gm-1.d0)*p(:,:) + 0.5d0*ro(:,:)*v2(:,:))*vx(:,:)& 
     + (ey(:,:)*bz(:,:)-ez(:,:)*by(:,:))
   fz(:,:) = (gm/(gm-1.d0)*p(:,:) + 0.5d0*ro(:,:)*v2(:,:))*vz(:,:)&
     + (ex(:,:)*by(:,:)-ey(:,:)*bx(:,:))
-  r(:,:) = -fx(:,:) / x(:,:)
+  r(:,:) = -fx(:,:) / x(:,:) &
+    + ro(:,:)*gx(:,:)*vx(:,:) + ro(:,:)*gz(:,:)*vz(:,:)
   CALL mlw2d1st(etot,fx,fz,etotn,detot,ix,jx,dt,dx,dz)
   CALL mlw2dsrc1st(r,etotn,detot,ix,jx,dt,dx,dz)
 
@@ -304,9 +339,10 @@ PROGRAM main
   do j = 1,jx
   do i = 1,ix
     if(pn(i,j) < 0.d0) then
-      write(*,*) "pressure is negative at (i,j)=", i, j
-      write(*,*) "end of 1st step" 
-      stop 
+      !write(*,*) "pressure is negative at (i,j)=", i, j
+      !write(*,*) "end of 1st step" 
+      pn(i,j) = 1.d-3
+      !stop 
     endif
   enddo
   enddo
@@ -317,40 +353,46 @@ PROGRAM main
   !! 2nd STEP
   !========================================
 
+  !----- density -----!
   fx(:,:) = ron(:,:)*vxn(:,:)
   fz(:,:) = ron(:,:)*vzn(:,:)
   r(:,:) = -fx(:,:) / xm(:,:)
   CALL mlw2d2nd(fx,fz,dro,ix,jx,dt,dx,dz)
   CALL mlw2dsrc2nd(dro,r,ix,jx,dt,dx,dz)
 
+  !----- x-momentum -----!
   fx(:,:) = ron(:,:)*vxn(:,:)**2+pn(:,:)&
     +0.5d0*(-bxn(:,:)**2+byn(:,:)**2+bzn(:,:)**2)
   fz(:,:) = ron(:,:)*vzn(:,:)*vxn(:,:)-bzn(:,:)*bxn(:,:)
   r(:,:) = - (ron(:,:)*(vxn(:,:)**2-vyn(:,:)**2)&
-    -(bxn(:,:)**2-byn(:,:)**2)) / xm(:,:)
+    -(bxn(:,:)**2-byn(:,:)**2)) / xm(:,:) + ron(:,:)*gxm(:,:)
   CALL mlw2d2nd(fx,fz,drvx,ix,jx,dt,dx,dz)
   CALL mlw2dsrc2nd(drvx,r,ix,jx,dt,dx,dz)
 
+  !----- y-momentum -----!
   fx(:,:) = ron(:,:)*vxn(:,:)*vyn(:,:)-bxn(:,:)*byn(:,:)
   fz(:,:) = ron(:,:)*vzn(:,:)*vyn(:,:)-bzn(:,:)*byn(:,:)
   r(:,:) = -2.d0 * fx(:,:)/xm(:,:)
   CALL mlw2d2nd(fx,fz,drvy,ix,jx,dt,dx,dz)
   CALL mlw2dsrc2nd(drvy,r,ix,jx,dt,dx,dz)
 
+  !----- z-momentum -----!
   fx(:,:) = ron(:,:)*vxn(:,:)*vzn(:,:)-bxn(:,:)*bzn(:,:)
   fz(:,:) = ron(:,:)*vzn(:,:)**2+pn(:,:)&
     +0.5d0*(bxn(:,:)**2+byn(:,:)**2-bzn(:,:)**2)
-  r(:,:) = - fx(:,:)/xm(:,:)
+  r(:,:) = - fx(:,:)/xm(:,:) + ron(:,:)*gzm(:,:)
   CALL mlw2d2nd(fx,fz,drvz,ix,jx,dt,dx,dz)
   CALL mlw2dsrc2nd(drvz,r,ix,jx,dt,dx,dz)
 
   v2n(:,:) = vxn(:,:)**2 + vyn(:,:)**2 + vzn(:,:)**2
 
+  !----- energy -----!
   fx(:,:) = (gm/(gm-1.d0)*pn(:,:) + 0.5d0*ron(:,:)*v2n(:,:))*vxn(:,:)&
     + (eyn(:,:)*bzn(:,:)-ezn(:,:)*byn(:,:))
   fz(:,:) = (gm/(gm-1.d0)*pn(:,:) + 0.5d0*ron(:,:)*v2n(:,:))*vzn(:,:)&
     + (exn(:,:)*byn(:,:)-eyn(:,:)*bxn(:,:))
-  r(:,:) = -fx(:,:) / xm(:,:)
+  r(:,:) = -fx(:,:) / xm(:,:) &
+     + ron(:,:)*gxm(:,:)*vxn(:,:) + ron(:,:)*gzm(:,:)*vzn(:,:)
   CALL mlw2d2nd(fx,fz,detot,ix,jx,dt,dx,dz)
   CALL mlw2dsrc2nd(detot,r,ix,jx,dt,dx,dz)
 
@@ -378,10 +420,11 @@ PROGRAM main
   do j = 1,jx
   do i = 1,ix
     if(pn(i,j) < 0.d0) then
-      write(*,*) "pressure is negative at (i,j)=", i, j
-      write(*,*) "pressure is negative at (r,z)=", x(i,j), z(i,j)
-      write(*,*) "end of 2nd step" 
-      stop 
+      !.w.rite(*,*) "pressure is negative at (i,j)=", i, j
+      !write(*,*) "pressure is negative at (r,z)=", x(i,j), z(i,j)
+      !write(*,*) "end of 2nd step" 
+      !stop 
+      pn(i,j) = 1.d-3
     endif
   enddo
   enddo
@@ -482,17 +525,19 @@ PROGRAM main
   ay(:,:) = ay(:,:) - ey(:,:) * dt
 
   !!!!!
-  do j = 1,jx
-  do i = 1,ix
-    if(p(i,j) < 0.d0) then
-      write(*,*) "pressure is negative at (i,j)=", i, j
-      write(*,*) "pressure is negative at (r,z)=", x(i,j), z(i,j)
-      write(*,*) "end of artv step" 
-      write(*,*) "t=", t, "ns=", ns
-      stop 
-    endif
-  enddo
-  enddo
+ do j = 1,jx
+ do i = 1,ix
+   if(p(i,j) < 0.d0) then
+     !write(*,*) "pressure is negative at (i,j)=", i, j
+     !write(*,*) "pressure is negative at (r,z)=", x(i,j), z(i,j)
+     !write(*,*) "end of artv step" 
+     !write(*,*) "pressure:", p(i,j)j
+     !write(*,*) "t=", t, "ns=", ns
+     !stop 
+     p(i,j) = 1.d-3
+   endif
+ enddo
+ enddo
   !!!!!
 
 
