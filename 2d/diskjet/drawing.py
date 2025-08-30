@@ -30,34 +30,42 @@ ay= read.read_phys2d('ay.dat',ix,jx)
 nd = np.size(t)
 x_1d = x[0,margin:]
 z_1d = z[margin:,0]
-
+#
 x_ori_min = x[0,0]
 xmin = x_1d[0]
 dx = (xmin-x_ori_min)/margin
-x_interval = np.arange(-xmin+dx,xmin,dx)
-x_1d_all = np.concatenate([-x_1d[::-1],x_interval,x_1d])
-x_all_len = np.size(x_1d_all)
-
+#x_interval = np.arange(-xmin+dx,xmin,dx)
+#x_1d_all = np.concatenate([-x_1d[::-1],x_interval,x_1d])
+#x_all_len = np.size(x_1d_all)
+#
 z_ori_min = z[0,0]
 zmin = z_1d[0]
 dz = (zmin-z_ori_min)/margin
-z_interval = np.arange(-zmin+dz,zmin,dz)
-z_1d_all = np.concatenate([-z_1d[::-1],z_interval,z_1d])
-z_all_len = np.size(z_1d_all)
+#z_interval = np.arange(-zmin+dz,zmin,dz)
+#z_1d_all = np.concatenate([-z_1d[::-1],z_interval,z_1d])
+#z_all_len = np.size(z_1d_all)
+#
+#
+### it is possible to solve z=0, so z_interval should be empty 
+#if(np.size(z_interval) != 0):
+#   exit() 
 
 
-## it is possible to solve z=0, so z_interval should be empty 
-if(np.size(z_interval) != 0):
-   exit() 
+xz = np.append(x[:margin-1:-1,margin:],x[margin:,margin:],axis=1)
+zz = np.append(-z[:margin-1:-1,margin:],z[margin:,margin:],axis=1)
+print(zz)
+roz = np.append(ro[:,:margin-1:-1,margin:],ro[:,margin:,margin:],axis=1)
 
+## for draw graph
+fig = plt.figure(figsize=(7, 5))
+plt.rcParams['font.size']=13
+plt.rcParams['font.family']='STIXGeneral'
+plt.rcParams['mathtext.fontset']='stix'
+ax = fig.add_subplot(111)
+ax.contourf(xz,zz,roz[0])
+plt.plot()
 
-X, Z = np.meshgrid(x_1d_all,z_1d_all)
-
-ro_all = np.empty((x_all_len,z_all_len))
-ro_all[:,:] = np.nan
-
-
-
+exit()
 
 
 
@@ -85,14 +93,16 @@ for n in range(nd):
     ax.set_ylim(0,2.5)
     tle = r'$t=$ '+str(t[n])[:7]
     #im1 = ax.pcolormesh(x,z,np.log10(ro[n]),cmap='jet',vmin=0,vmax=3)
+    im1 = ax.contourf(X, Z, np.log10(ro_wo_m[n]),
+                       levels=np.linspace(-4,1,11),extend='both',
+                       vmin=-4,vmax=1,cmap='jet')
+    ax.set_title(tle+r" Density $\log_{10}(\rho)$")
     ax.contour(x, z, np.log10(ro[n]),
                        levels=np.linspace(-4,1,31),extend='both',
                        vmin=-4,vmax=1,colors='black',
                        linewidths=0.8)
-    im1 = ax.contourf(x, z, np.log10(ro[n]),
-                       levels=np.linspace(-4,1,11),extend='both',
-                       vmin=-4,vmax=1,cmap='jet')
-    ax.set_title(tle+r" Density $\log_{10}(\rho)$")
+    ax.quiver(x[::5,::5], z[::5,::5], vx[n,::5,::5], vz[n,::5,::5],
+              scale=10,color='black')
     #ax.contour(x,z,ay[n],levels=20,colors='white',linewidths=0.5)
     #ax.set_title(r"$\log_{10}(\rho)$")
 
@@ -109,8 +119,8 @@ for n in range(nd):
     cbar1 = fig.colorbar(im1,ax=ax)
     #ax.set_title(tle)
 
-    #plt.show()
-    #exit()
+    plt.show()
+    exit()
 
     savename = 'fig/'+str(n).zfill(3)+'.png'
     plt.savefig(savename,dpi=300)

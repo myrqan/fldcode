@@ -18,7 +18,7 @@ PROGRAM main
   DOUBLE PRECISION,PARAMETER :: pi = 4.d0*ATAN(1.d0)
   CHARACTER(100) :: foutmsg,fstopmsg
   INTEGER,PARAMETER :: margin = 2
-  INTEGER,PARAMETER :: grid_x = 150
+  INTEGER,PARAMETER :: grid_x = 200
   INTEGER,PARAMETER :: grid_z = 200
   INTEGER,PARAMETER :: ix = 2*margin+grid_x
   INTEGER,PARAMETER :: jx = 2*margin+grid_z
@@ -85,7 +85,7 @@ PROGRAM main
   !!  time parameters
   !========================================
   tend = 6.0d0 !! end of calculation
-  dtout = 0.1d-0!! time interval for output
+  dtout = 0.1d-1!! time interval for output
   t = 0.d0
   tout = 0.d0
   ns = 0 !! # of steps
@@ -234,14 +234,15 @@ PROGRAM main
   CALL write_2d_dble("ay.dat",ay)
   write(*,foutmsg) ns,t,nd
   nd = nd + 1
+  dtout = 0.d0
   tout = tout + dtout
 
   !========================================
   !!  MAIN LOOP (TIME INTEGRATION)
   !========================================
   main_loop:&
-    do while(t < tend)
-    !do while(ns < 10)
+    !do while(t < tend)
+    do while(ns < 10)
 !    if(mod(ns,10)==0) then
 !      write(*,*) "ns=", ns, "t=", t
 !    endif
@@ -341,11 +342,12 @@ PROGRAM main
     if(pn(i,j) < 0.d0) then
       !write(*,*) "pressure is negative at (i,j)=", i, j
       !write(*,*) "end of 1st step" 
-      !pn(i,j) = 1.d-3
+      !pn(i,j) = 1.d-5
       !stop 
     endif
   enddo
   enddo
+  CALL calc_etot(ron,pn,vxn,vyn,vzn,bxn,byn,bzn,etotn,gm,ix,jx)
   !!!!!
 
   
@@ -424,10 +426,11 @@ PROGRAM main
       !write(*,*) "pressure is negative at (r,z)=", x(i,j), z(i,j)
       !write(*,*) "end of 2nd step" 
       !stop 
-      !pn(i,j) = 1.d-3
+      !pn(i,j) = 1.d-5
     endif
   enddo
   enddo
+  CALL calc_etot(ron,pn,vxn,vyn,vzn,bxn,byn,bzn,etotn,gm,ix,jx)
   !!!
 
 
@@ -534,10 +537,11 @@ PROGRAM main
      !write(*,*) "pressure:", p(i,j)j
      !write(*,*) "t=", t, "ns=", ns
      !stop 
-     !p(i,j) = 1.d-3
+     !p(i,j) = 1.d-5
    endif
  enddo
  enddo
+  CALL calc_etot(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
   !!!!!
 
 

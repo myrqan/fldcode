@@ -2,6 +2,7 @@ MODULE model
   IMPLICIT NONE
   CONTAINS
     subroutine make_grid(x,xm,dx,z,zm,dz,ix,jx,margin)
+      USE file_output
       INTEGER,INTENT(IN) :: ix,jx,margin
       DOUBLE PRECISION,INTENT(OUT) :: x(ix,jx),xm(ix,jx),dx,&
         z(ix,jx),zm(ix,jx),dz
@@ -10,12 +11,16 @@ MODULE model
 
       !------------------------------
       ! these values can be changed
-      xmax = 3.d0; zmax = 5.d0
-      xmin = 0.05d0; zmin = 0.00d0
+      xmax = 3.d0; zmax = 7.d0
+      xmin = 0.04d0; zmin = 0.00d0
       !xmax = 1.d0; zmax = 1.d0
       !xmin = 0.d0; zmin = -1.d0
       !------------------------------
       !xmax = 1.d0 + xmin
+      CALL put_param_dble("xmin:",xmin)
+      CALL put_param_dble("xmax:",xmax)
+      CALL put_param_dble("zmin:",zmin)
+      CALL put_param_dble("zmax:",zmax)
       
       iix = ix-2*margin
       jjx = jx-2*margin
@@ -144,7 +149,8 @@ MODULE model
       p(:,:) = eth * ro(:,:) ** (1.d0 + 1.d0/nn)
       vx(:,:) = 0.d0; vz(:,:) = 0.d0
       bx(:,:) = 0.d0; by(:,:) = 0.d0
-      bz(:,:) = b0
+      !bz(:,:) = b0
+      bz(:,:) = 0.d0
 
     END subroutine diskjet
 
