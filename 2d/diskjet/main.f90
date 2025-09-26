@@ -18,8 +18,8 @@ PROGRAM main
   DOUBLE PRECISION,PARAMETER :: pi = 4.d0*ATAN(1.d0)
   CHARACTER(100) :: foutmsg,fstopmsg
   INTEGER,PARAMETER :: margin = 2
-  INTEGER,PARAMETER :: grid_x = 200
-  INTEGER,PARAMETER :: grid_z = 200
+  INTEGER,PARAMETER :: grid_x = 400
+  INTEGER,PARAMETER :: grid_z = 400
   INTEGER,PARAMETER :: ix = 2*margin+grid_x
   INTEGER,PARAMETER :: jx = 2*margin+grid_z
   INTEGER :: ixjx(3) = (/ix,jx,margin/)
@@ -85,7 +85,8 @@ PROGRAM main
   !!  time parameters
   !========================================
   tend = 6.0d0 !! end of calculation
-  dtout = 0.1d-1!! time interval for output
+  !dtout = 0.1d-1!! time interval for output
+  dtout = 0.1d0
   t = 0.d0
   tout = 0.d0
   ns = 0 !! # of steps
@@ -106,7 +107,7 @@ PROGRAM main
   !========================================
 
   CALL make_grid(x,xm,dx,z,zm,dz,ix,jx,margin)
-  CALL diskjet(ro,vx,vy,vz,bx,by,bz,p,gx,gxm,gz,gzm,x,z,ix,jx,dx,dz)
+  CALL diskjet(ro,vx,vy,vz,bx,by,bz,p,gm,gx,gxm,gz,gzm,x,z,ix,jx,dx,dz)
   !CALL sedov_with_b(ro,vx,vy,vz,bx,by,bz,p,x,z,ix,jx)
   CALL calc_ay(x,z,bx,by,bz,ix,jx,ay)
   !gx(:,:)=0.d0;gz(:,:)=0.d0;gxm(:,:)=0.d0;gzm(:,:)=0.d0
@@ -234,15 +235,15 @@ PROGRAM main
   CALL write_2d_dble("ay.dat",ay)
   write(*,foutmsg) ns,t,nd
   nd = nd + 1
-  dtout = 0.d0
+  !dtout = 0.d0
   tout = tout + dtout
 
   !========================================
   !!  MAIN LOOP (TIME INTEGRATION)
   !========================================
   main_loop:&
-    !do while(t < tend)
-    do while(ns < 10)
+    do while(t < tend)
+    !do while(ns < 10)
 !    if(mod(ns,10)==0) then
 !      write(*,*) "ns=", ns, "t=", t
 !    endif

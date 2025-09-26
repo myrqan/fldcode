@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import read
 from scipy.io import FortranFile
+import seaborn as sns
 
 ixjx = read.read_grid2d('ixjx.dat')
 ix = ixjx[0]
@@ -47,13 +48,14 @@ ax = fig.add_subplot(111)
 ax.set_aspect('equal')
 
 
+cmap_obj = sns.color_palette("coolwarm",as_cmap=True)
 
 n = 0
 for n in range(nd):
     ax.set_xlim(0,1)
     ax.set_ylim(0,1)
     tle = r'$t=$ '+str(t[n])[:7]+'/ Density, Poloidal Magnetic Field line'
-    im1 = ax.pcolormesh(x,z,ro[n],cmap='plasma',vmin=0,vmax=3)
+    im1 = ax.pcolormesh(x,z,ro[n],cmap=cmap_obj,vmin=0,vmax=3)
     #im1 = ax.pcolormesh(x,z,np.sqrt(vx[n]**2+vz[n]**2),cmap='plasma',vmin=0,vmax=0.3)
     #im1 = ax.pcolormesh(x,z,np.log(pr[n]),cmap='plasma',vmin=-8,vmax=0)
     #im1 = ax.pcolormesh(x,z,bz[n],cmap='plasma')

@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import read
 from scipy.io import FortranFile
+import seaborn as sns
 
 ###############################
 #   read binary files
@@ -60,47 +61,50 @@ plt.rcParams['mathtext.fontset']='stix'
 ax = fig.add_subplot(111)
 
 ## flag: density, bphi, pressure, beta
-flag = 'pressure'
+flag = 'density'
 
+cmap_obj = sns.color_palette("coolwarm",as_cmap=True)
 
 for n in range(nd):
+    #if(n%10!=0):
+        #continue
     ax.set_aspect('equal')
-    ax.set_xlim(0,0.5)
-    ax.set_ylim(-0.5,0.5)
+    ax.set_xlim(0,1.5)
+    ax.set_ylim(-1.5,1.5)
     tle = r'$t=$ '+str(t[n])[:5]
     if(flag == 'density'):
         im1 = ax.contourf(xx,zz, np.log10(roz[n]),
                            levels=np.linspace(-4,1,11),extend='both',
-                           vmin=-4,vmax=1,cmap='jet')
+                           vmin=-4,vmax=1,cmap=cmap_obj)
         cbar1 = fig.colorbar(im1,ax=ax)
         ax.set_title(tle+r" Density $\log_{10}(\rho)$")
         ax.contour(xx, zz, np.log10(roz[n]),
                            levels=np.linspace(-4,1,31),extend='both',
                            vmin=-4,vmax=1,colors='black',
-                           linewidths=0.8)
+                           linewidths=0.5)
     elif(flag=='bphi'):
         im1 = ax.contourf(xx,zz,byz[n],
                            levels=np.linspace(-3,3,11),extend='both',
-                           vmin=-3,vmax=3,cmap='jet')
+                           vmin=-3,vmax=3,cmap=cmap_obj)
         cbar1 = fig.colorbar(im1,ax=ax)
         ax.set_title(tle+r" toroidal magnetic field $B_{\phi}$")
         ax.contour(xx, zz, byz[n],
                            levels=np.linspace(-3,3,31),extend='both',
                            vmin=-3,vmax=3,colors='black',
-                           linewidths=0.8)
+                           linewidths=0.5)
     elif(flag=='pressure'):
         im1 = ax.contourf(xx,zz,np.log10(prz[n]),
                            levels=np.linspace(-3,2,11),extend='both',
-                           vmin=-3,vmax=2,cmap='jet')
+                           vmin=-3,vmax=2,cmap=cmap_obj)
         cbar1 = fig.colorbar(im1,ax=ax)
         ax.set_title(tle+r" gas pressure $\log_{10}(P_{\mathrm{gas}})$")
         ax.contour(xx, zz, np.log10(prz[n]),
                            levels=np.linspace(-3,2,31),extend='both',
                            vmin=-3,vmax=2,colors='black',
-                           linewidths=0.8)
+                           linewidths=0.5)
 
-    ax.quiver(xx[::5,::5], zz[::5,::5], vxz[n,::5,::5], vzz[n,::5,::5],
-              scale=10,color='black')
+    #ax.quiver(xx[::5,::5], zz[::5,::5], vxz[n,::5,::5], vzz[n,::5,::5],
+    #          scale=10,color='black')
 
     #im1 = ax.contourf(x, z, np.log10(pr[n]),
     #                   levels=np.linspace(-10,1,11),extend='both',
@@ -109,7 +113,8 @@ for n in range(nd):
     #im1 = ax.pcolormesh(x,z,np.sqrt(vx[n]**2+vz[n]**2),cmap='plasma',vmin=0,vmax=0.3)
     #im1 = ax.pcolormesh(x,z,np.log(pr[n]),cmap='plasma',vmin=-8,vmax=0)
     #im1 = ax.pcolormesh(x,z,bz[n],cmap='plasma')
-    im2 = ax.contour(xx,zz,ayz[n],colors='w',levels=np.arange(0.01,0.5,0.01))
+    im2 = ax.contour(xx,zz,ayz[n],colors='w',levels=np.arange(0.0,0.5,0.004),linewidths=0.6)
+    #im2 = ax.contour(xx,zz,ayz[n],colors='k',levels=np.arange(0,0.5,0.004),linewidths=0.9)
     #im2.clabel(fmt='%5.4f')
     #ax.set_title(tle)
 
@@ -120,6 +125,8 @@ for n in range(nd):
     plt.savefig(savename,dpi=300)
     cbar1.remove()
     ax.clear()
+    if(n%50==0):
+        print('png No. '+str(n)+' is completed.')
 
 exit()
 

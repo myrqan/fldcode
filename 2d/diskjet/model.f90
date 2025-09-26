@@ -61,16 +61,16 @@ MODULE model
 
     !#################################
 
-    subroutine diskjet(ro,vx,vy,vz,bx,by,bz,p,gx,gxm,gz,gzm,x,z,ix,jx,dx,dz)
+    subroutine diskjet(ro,vx,vy,vz,bx,by,bz,p,gm,gx,gxm,gz,gzm,x,z,ix,jx,dx,dz)
       USE file_output
       INTEGER,INTENT(IN) :: ix,jx
-      DOUBLE PRECISION,INTENT(IN) :: x(ix,jx),z(ix,jx),dx,dz
+      DOUBLE PRECISION,INTENT(IN) :: x(ix,jx),z(ix,jx),dx,dz,gm
       DOUBLE PRECISION,INTENT(OUT) :: ro(ix,jx),vx(ix,jx),&
         vy(ix,jx),vz(ix,jx),bx(ix,jx),by(ix,jx),bz(ix,jx),p(ix,jx),&
         gx(ix,jx),gxm(ix,jx),gz(ix,jx),gzm(ix,jx)
       DOUBLE PRECISION :: gpot(ix,jx),dis
-      DOUBLE PRECISION :: srad,aa,nn,alpha,roc,eth,emg
-      DOUBLE PRECISION :: psi0,b0,ro_c,ro_d
+      DOUBLE PRECISION :: srad,aa,nn,alpha,roc,eth,emg,tec0,tec00
+      DOUBLE PRECISION :: psi0,b0,ro_c,ro_d,p_c,p_d,vy_c,vy_d,te
       INTEGER :: i,j
       DOUBLE PRECISION, PARAMETER :: pi = 4.d0 * ATAN(1.d0)
 
@@ -79,9 +79,11 @@ MODULE model
       aa = 0.d0
       nn = 3.d0
       alpha = 1.d0
+      tec0 = 1.d0
+      tec00 = tec0 * gm
       roc = 1.d-3
       eth = 5.d-2
-      emg = 1.d-2
+      emg = 5.d-4
 
       CALL put_param_dble("srad:",srad)
       CALL put_param_dble("aa:",aa)
@@ -122,61 +124,64 @@ MODULE model
       !! apply boudary conditions for g{x,z}(m) (in the main.f90)
 
       ! calculate other variables
+
       psi0 = -1.d0 + 0.5d0 / (1.d0-aa) +  (nn+1.d0) * eth
       b0 = sqrt(emg)
 
       do j=1,jx
       do i=1,ix
-        dis = sqrt(x(i,j)**2 + z(i,j)**2)
-        ro_c = roc * exp(-alpha * (gpot(i,j) + 1.d0))
-        ro_d = ( 1/(eth*(nn+1)) &
-          * ( psi0 - gpot(i,j) - 1.d0/(2*(1-aa)) * x(i,j)**(2*aa-2) ) )**nn
-        
+        dis = sqrt(x(i,j)**2+z(i,j)**2)
+        ro_c = roc * exp(-1.d0/tec0*(gpot(i,j)+1.d0))
+        p_c = ro_c * tec0
 
-        if(ro_d < 0.d0) then
-          !---- outside disk ----!
-          ro(i,j) = ro_c
-          vy(i,j) = 0.d0
-        else
-          !---- inside disk ----!
-          ro(i,j) = ro_c + ro_d
-          vy(i,j) = x(i,j) ** (aa-1.d0)
+        ro_d = 0.d0
+        p_d = 0.d0
+        vy_d = 0.d0
+        if(x(i,j) > srad) then
+
+          te = (psi0 + 1.d0/dis - 0.5d0/(1.d0-aa)*x(i,j)**(2*aa-2)) / (nn+1) / gm
+
+          if(te > 0.d0) then
+
+            ro_d = (te/gm/eth)**nn
+            p_d = te*ro_d/gm
+            vy_d = x(i,j)**(aa-1)
+
+          endif
         endif
+        ro(i,j) = ro_c + ro_d
+        p(i,j) = p_c + p_d
+        vy(i,j) = vy_c + vy_d
+
+      !--- ---!
+
+!        dis = sqrt(x(i,j)**2 + z(i,j)**2)
+!        ro_c = roc * exp(-alpha * (gpot(i,j) + 1.d0))
+!        ro_d = ( 1/(eth*(nn+1)) &
+!          * ( psi0 - gpot(i,j) - 1.d0/(2*(1-aa)) * x(i,j)**(2*aa-2) ) )**nn
+!        
+!
+!        if(ro_d < 0.d0) then
+!          !---- outside disk ----!
+!          ro(i,j) = ro_c
+!          vy(i,j) = 0.d0
+!        else
+!          !---- inside disk ----!
+!          ro(i,j) = ro_c + ro_d
+!          vy(i,j) = x(i,j) ** (aa-1.d0)
+!        endif
 
       enddo
       enddo
 
-      p(:,:) = eth * ro(:,:) ** (1.d0 + 1.d0/nn)
+!      p(:,:) = eth * ro(:,:) ** (1.d0 + 1.d0/nn)
+
       vx(:,:) = 0.d0; vz(:,:) = 0.d0
       bx(:,:) = 0.d0; by(:,:) = 0.d0
-      !bz(:,:) = b0
-      bz(:,:) = 0.d0
+      bz(:,:) = b0
+      !bz(:,:) = 0.d0
 
     END subroutine diskjet
 
-    subroutine sedov_with_b(ro,vx,vy,vz,bx,by,bz,p,x,z,ix,jx)
-      INTEGER,INTENT(IN) :: ix,jx
-      DOUBLE PRECISION,INTENT(IN) :: x(ix,jx),z(ix,jx)
-      DOUBLE PRECISION,INTENT(OUT) :: ro(ix,jx),vx(ix,jx),&
-        vy(ix,jx),vz(ix,jx),bx(ix,jx),by(ix,jx),bz(ix,jx),p(ix,jx)
-      DOUBLE PRECISION :: we, prism
-      INTEGER :: ii,jj
-      DOUBLE PRECISION, PARAMETER :: pi = 4.d0 * ATAN(1.d0)
-
-      we = 0.1d0
-      prism = 1.d-8
-
-      ro(:,:)=1.d0
-      vx(:,:)=0.d0; vy(:,:)=0.d0; vz(:,:)=0.d0
-      bx(:,:)=0.d0; by(:,:)=0.d0; bz(:,:)=1.d-1
-
-      do jj = 1,jx
-        do ii = 1,ix
-          p(ii,jj) = prism + (1.d0-prism) &
-          * exp(-(x(ii,jj)**2+z(ii,jj)**2)/we**2)
-        enddo
-      enddo
-
-    END subroutine sedov_with_b
 
 END module model
