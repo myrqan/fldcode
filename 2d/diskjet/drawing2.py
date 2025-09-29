@@ -41,16 +41,22 @@ xx, zz = np.meshgrid(x_1d, zz_1d)
 ro = ro[:,margin:,margin:]
 vx = vx[:,margin:,margin:]
 vz = vz[:,margin:,margin:]
+bx = bx[:,margin:,margin:]
 by = by[:,margin:,margin:]
+bz = bz[:,margin:,margin:]
 pr = pr[:,margin:,margin:]
 ay = ay[:,margin:,margin:]
 
 roz = np.append(ro[:,::-1,:],ro,axis=1)
 vxz = np.append(vx[:,::-1,:],vx,axis=1)
 vzz = np.append(-vz[:,::-1,:],vz,axis=1)
+bxz = np.append(bx[:,::-1,:],bx,axis=1)
 byz = np.append(-by[:,::-1,:],by,axis=1)
+bzz = np.append(bz[:,::-1,:],bz,axis=1)
 prz = np.append(pr[:,::-1,:],pr,axis=1)
 ayz = np.append(ay[:,::-1,:],ay,axis=1)
+
+prmgz = 0.5*(bxz**2 + byz**2 + bzz**2)
 
 
 ## for draw graph
@@ -61,7 +67,7 @@ plt.rcParams['mathtext.fontset']='stix'
 ax = fig.add_subplot(111)
 
 ## flag: density, bphi, pressure, beta
-flag = 'density'
+flag = 'beta'
 
 cmap_obj = sns.color_palette("coolwarm",as_cmap=True)
 
@@ -103,6 +109,17 @@ for n in range(nd):
                            vmin=-3,vmax=2,colors='black',
                            linewidths=0.5)
 
+    elif(flag=='beta'):
+        im1 = ax.contourf(xx,zz,np.log10(prz[n]/prmgz[n]),
+                           levels=np.linspace(-5,3,11),extend='both',
+                           vmin=-3,vmax=2,cmap=cmap_obj)
+        cbar1 = fig.colorbar(im1,ax=ax)
+        ax.set_title(tle+r"plasma beta $\log_{10}(\beta)$")
+        #ax.contour(xx, zz, np.log10(prz[n]/prmgz[z]),
+                           #levels=np.linspace(-3,2,31),extend='both',
+                           #vmin=-3,vmax=2,colors='black',
+                           #linewidths=0.5)
+
     #ax.quiver(xx[::5,::5], zz[::5,::5], vxz[n,::5,::5], vzz[n,::5,::5],
     #          scale=10,color='black')
 
@@ -121,7 +138,8 @@ for n in range(nd):
     #plt.show()
     #exit()
 
-    savename = 'fig/'+str(n).zfill(3)+'.png'
+    #savename = 'fig/'+str(n).zfill(3)+'.png'
+    savename = 'fig/beta(1000x1000)_'+str(n).zfill(1)+'.png'
     plt.savefig(savename,dpi=300)
     cbar1.remove()
     ax.clear()
