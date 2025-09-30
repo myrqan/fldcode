@@ -12,7 +12,7 @@ MODULE model
       !------------------------------
       ! these values can be changed
       xmax = 3.d0; zmax = 7.d0
-      xmin = 0.05d0; zmin = 0.00d0
+      xmin = 0.07d0; zmin = 0.00d0
       !xmax = 1.d0; zmax = 1.d0
       !xmin = 0.d0; zmin = -1.d0
       !------------------------------
@@ -83,7 +83,7 @@ MODULE model
       tec00 = tec0 * gm
       roc = 1.d-3
       eth = 5.d-2
-      emg = 2.d-3
+      emg = 5.d-4
 
       CALL put_param_dble("srad:",srad)
       CALL put_param_dble("aa:",aa)
