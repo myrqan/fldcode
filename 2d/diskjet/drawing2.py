@@ -62,8 +62,8 @@ prmgz = 0.5*(bxz**2 + byz**2 + bzz**2)
 
 
 ## for draw graph
-#fig = plt.figure(figsize=(5.5, 9))
-fig = plt.figure(figsize=(5.5, 7))
+fig = plt.figure(figsize=(5.5, 9))
+#fig = plt.figure(figsize=(5.5, 7))
 
 plt.rcParams['font.size']=13
 plt.rcParams['font.family']='STIXGeneral'
@@ -71,7 +71,7 @@ plt.rcParams['mathtext.fontset']='stix'
 ax = fig.add_subplot(111)
 
 ## flag: density, bphi, pressure, beta
-flag = 'beta'
+flag = 'density'
 
 
 cmap_obj = sns.color_palette("coolwarm",as_cmap=True)
@@ -81,7 +81,7 @@ for n in range(nd):
         #continue
     ax.set_aspect('equal')
     ax.set_xlim(0,1.5)
-    ax.set_ylim(-0.5,1.5)
+    ax.set_ylim(-0.5,3.0)
     tle = r'$t=$ '+str(t[n])[:5]
     if(flag == 'density'):
         im1 = ax.contourf(xx,zz, np.log10(roz[n]),
@@ -135,8 +135,8 @@ for n in range(nd):
                            #vmin=-3,vmax=2,colors='black',
                            #linewidths=0.5)
 
-    #ax.quiver(xx[::30,::30], zz[::30,::30], vxz[n,::30,::30], vzz[n,::30,::30],
-    #          scale=1.,color='black')
+    ax.quiver(xx[::30,::30], zz[::30,::30], vxz[n,::30,::30], vzz[n,::30,::30],
+              scale=1.,color='black')
 
     #im1 = ax.contourf(x, z, np.log10(pr[n]),
     #                   levels=np.linspace(-10,1,11),extend='both',
