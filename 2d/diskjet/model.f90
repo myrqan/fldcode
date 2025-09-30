@@ -12,7 +12,7 @@ MODULE model
       !------------------------------
       ! these values can be changed
       xmax = 3.d0; zmax = 7.d0
-      xmin = 0.04d0; zmin = 0.00d0
+      xmin = 0.03d0; zmin = 0.00d0
       !xmax = 1.d0; zmax = 1.d0
       !xmin = 0.d0; zmin = -1.d0
       !------------------------------
@@ -83,7 +83,7 @@ MODULE model
       tec00 = tec0 * gm
       roc = 1.d-3
       eth = 5.d-2
-      emg = 5.d-4
+      emg = 5.d-4!*4*pi
 
       CALL put_param_dble("srad:",srad)
       CALL put_param_dble("aa:",aa)
@@ -125,7 +125,7 @@ MODULE model
 
       ! calculate other variables
 
-      psi0 = -1.d0 + 0.5d0 / (1.d0-aa) +  (nn+1.d0) * eth
+      psi0 = -1.d0 + 0.5d0 / (1.d0-aa) + (nn+1.d0) * eth
       b0 = sqrt(emg)
 
       do j=1,jx
@@ -139,7 +139,7 @@ MODULE model
         vy_d = 0.d0
         if(x(i,j) > srad) then
 
-          te = (psi0 + 1.d0/dis - 0.5d0/(1.d0-aa)*x(i,j)**(2*aa-2)) / (nn+1) / gm
+          te = (psi0 + 1.d0/dis - 0.5d0/(1.d0-aa)*x(i,j)**(2*aa-2)) / (nn+1) * gm
 
           if(te > 0.d0) then
 
