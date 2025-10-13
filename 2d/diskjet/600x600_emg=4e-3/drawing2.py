@@ -71,7 +71,7 @@ plt.rcParams['mathtext.fontset']='stix'
 ax = fig.add_subplot(111)
 
 ## flag: density, bphi, pressure, beta
-flag = 'beta'
+flag = 'density'
 
 
 cmap_obj = sns.color_palette("coolwarm",as_cmap=True)
@@ -156,7 +156,7 @@ for n in range(nd):
     #exit()
 
     #savename = 'fig/'+str(n).zfill(3)+'.png'
-    savename = 'fig/be'+str(n).zfill(3)+'.png'
+    savename = 'fig/'+str(n).zfill(3)+'.png'
     plt.savefig(savename,dpi=300)
     cbar1.remove()
     ax.clear()
