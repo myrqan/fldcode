@@ -18,8 +18,8 @@ PROGRAM main
   DOUBLE PRECISION,PARAMETER :: pi = 4.d0*ATAN(1.d0)
   CHARACTER(100) :: foutmsg,fstopmsg
   INTEGER,PARAMETER :: margin = 2
-  INTEGER,PARAMETER :: grid_x = 400
-  INTEGER,PARAMETER :: grid_z = 400
+  INTEGER,PARAMETER :: grid_x = 500
+  INTEGER,PARAMETER :: grid_z = 500
   INTEGER,PARAMETER :: ix = 2*margin+grid_x
   INTEGER,PARAMETER :: jx = 2*margin+grid_z
   INTEGER :: ixjx(3) = (/ix,jx,margin/)
@@ -84,9 +84,9 @@ PROGRAM main
   !========================================
   !!  time parameters
   !========================================
-  tend = 10.0d0 !! end of calculation
+  tend = 30.0d0 !! end of calculation
   !dtout = 0.1d-1!! time interval for output
-  dtout = 0.5d0
+  dtout = 1.d0
   t = 0.d0
   tout = 0.d0
   ns = 0 !! # of steps

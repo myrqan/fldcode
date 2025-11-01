@@ -11,7 +11,7 @@ module cfl
       DOUBLE PRECISION :: min_val,v2,va2,vs2
       INTEGER :: i,j
       INTEGER :: iout, jout
-      DOUBLE PRECISION :: dtmin = 1.d-15
+      DOUBLE PRECISION :: dtmin = 1.d-20
 
       min_val = 1e20
       do j = margin, jx-margin

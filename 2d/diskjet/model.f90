@@ -84,6 +84,7 @@ MODULE model
       roc = 1.d-3
       eth = 5.d-2
       emg = 5.d-4
+      !emg = 4.d-3
 
       CALL put_param_dble("srad:",srad)
       CALL put_param_dble("aa:",aa)
