@@ -14,7 +14,7 @@ program main
   character(len=100) :: formatoutdata,formatoutmessage,formatstopmessage
   integer :: mfile
   integer,parameter :: margin = 1
-  integer,parameter :: grid_x = 3000
+  integer,parameter :: grid_x = 1000
   integer,parameter :: ix=2*margin+grid_x
   double precision :: x(ix),dx
   double precision :: u(ix),um(ix),un(ix)
@@ -89,7 +89,7 @@ program main
   dt = 1.d-5
   !----------------------------------------------------------------------|
   !     solve difference equations
-  !     by two-step Lax-Wendroff scheme
+  !     by modified two-step Lax-Wendroff scheme
 
   !----------------------------------------------------------------------|
   ! FIRST STEP
