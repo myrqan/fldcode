@@ -15,7 +15,7 @@ contains
 
     dt_min = 1.d-3
     dt = dt_min
-    safety = 0.3d0
+    safety = 0.4d0
     !dt = safety * dx * 1.d-3
     do ii = 1,ix
     vv = vx(ii)**2 + vy(ii)**2

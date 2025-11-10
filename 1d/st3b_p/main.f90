@@ -9,34 +9,39 @@ use cfl
 use mlw
 use bnd
 use arvis
+use mpi
 
 !===================================================================!
 ! array definitions
 !===================================================================!
 implicit none
+integer :: nprocs,my_rank,ierr
 character(len=100) :: foutmsg,fstpmsg
 integer :: mfile
 integer,parameter :: margin=1
-integer,parameter :: gx = 5000
-integer,parameter :: ix = 2*margin+gx
+integer,parameter :: gx = 1000
+integer,parameter :: mpix = 4
+integer,parameter :: lix = 2*margin+gx/mpix
+integer,parameter :: gix = 2*margin+gx
+!integer,parameter :: ix = 2*margin+gx
 real(8),parameter :: gm = 2.d0
 !real(8),parameter :: gm = 5.d0/3.d0
-real(8) :: xx(ix),xm(ix),dx
-real(8) :: ro(ix),vx(ix),vy(ix),bx(ix),by(ix),pr(ix),&
-  & etot(ix),ez(ix)
-real(8) :: rx(ix),ry(ix)
-real(8) :: rom(ix),vxm(ix),vym(ix),bxm(ix),bym(ix),prm(ix),&
-  & etotm(ix),ezm(ix)
-real(8) :: rxm(ix),rym(ix)
-real(8) :: dro(ix),drx(ix),dry(ix),dby(ix),dbz(ix),detot(ix)
-real(8) :: bb(ix),vv(ix),bbm(ix),vvm(ix)
+real(8) :: xx(lix),xm(lix),dx
+real(8) :: ro(lix),vx(lix),vy(lix),bx(lix),by(lix),pr(lix),&
+  & etot(lix),ez(lix)
+real(8) :: rx(lix),ry(lix)
+real(8) :: rom(lix),vxm(lix),vym(lix),bxm(lix),bym(lix),prm(lix),&
+  & etotm(lix),ezm(lix)
+real(8) :: rxm(lix),rym(lix)
+real(8) :: dro(lix),drx(lix),dry(lix),dby(lix),dbz(lix),detot(lix)
+real(8) :: bb(lix),vv(lix),bbm(lix),vvm(lix)
 
 real(8),parameter :: av = 2.0 !lapidus artificial viscosity coef.
-real(8) :: kx(ix)
+real(8) :: kx(lix)
 real(8) :: time,dt,tend,tout,dtout
 integer :: ns,nout ! ns = # of stage, nout = # of output
 
-real(8) :: qu(ix),qfx(ix),qfxm(ix)
+real(8) :: qu(lix),qfx(lix),qfxm(lix)
 
 real(8),parameter :: pi = 4.d0*atan(1.d0)
 real(8) :: pii = 1.d0 / pi
@@ -51,6 +56,22 @@ integer :: ii, jj
 !===================================================================!
 ! prologue
 !===================================================================!
+! ready for MPI
+!===================================================================eo 
+call MPI_INIT(ierr)
+call MPI_COMM_SIZE(MPI_COMM_WORLD,nprocs,ierr)
+call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+
+
+
+if(nprocs /= mpix) then
+  write(*,*) "number of processes is not consistent"
+  write(*,*) "change header in main.f90 or ns in makefile"
+  write(*,*) "nprocs= ", nprocs
+  write(*,*) "mpix= ", mpix
+  stop
+
+
 ! clean past data
 call dataclean()
 
@@ -83,7 +104,7 @@ ns = 0; nout = 0
 
 ! setup numerlcal model
 ! (grid & initial condition)
-call mkgrd(xx,xm,dx,ix,margin)
+call mkgrd(xx,xm,dx,gx,margin)
 call model_shocktube(ro,vx,vy,bx,by,pr,ez,etot,ix,xx,gm)
 
 ! write initial condition
