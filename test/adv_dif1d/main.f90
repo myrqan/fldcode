@@ -7,20 +7,21 @@ program main
   implicit none
 
   integer,parameter :: margin = 0
-  integer,parameter :: gx = 1001
+  integer,parameter :: gx = 10001
   real(8),parameter :: xmin = 0.d0
-  real(8),parameter :: xmax = 1.d0
+  real(8),parameter :: xmax = 3.d0
   real(8),parameter :: pi = 4.d0 * atan(1.d0)
-  real(8),parameter :: eta = 1.d-1
+  real(8),parameter :: eta = 1.d-2
   real(8) :: xx(gx),dx
   real(8) :: uu(gx),un(gx)
 
-  integer(8) :: ns
+  integer :: ns
   real(8) :: time, t_end, dt, t_out, dt_out
-  real(8) :: teps= 1.d-3
+  real(8) :: teps= 1.d-4
   real(8) :: rr
+  integer :: ss_max
 
-  integer :: sts_s
+  !integer :: sts_s
 
   integer :: ii
 
@@ -39,8 +40,8 @@ program main
   ns = 0
   time = 0.d0
   t_end = teps
-  t_end = t_end + 0.5d0
-  dt_out = 0.05d0
+  t_end = t_end + 1.d0
+  dt_out = 0.2d0
   t_out = dt_out
 
 
@@ -54,7 +55,7 @@ program main
 
   do while (time < t_end)
 
-  call determine_sts_s(sts_s,dx,eta)
+  !call determine_sts_s(sts_s,dx,eta)
 
 
   !!!!!!!!!!!!!!!!!!!!!
@@ -63,9 +64,11 @@ program main
 
   call cfl_ad(dt,dx,gx)
 
+  call sts_update(uu,dt/2.d0,dx,gx,eta,ss_max)
+
   call advflow(uu,dx,dt,gx)
 
-
+  call sts_update(uu,dt/2.d0,dx,gx,eta,ss_max)
 
   !call cfl_tc(dt,dx,gx,eta)
   !rr = eta * dt / dx**2
@@ -92,10 +95,14 @@ program main
 
     write(*,*) '[write], time = ', time, 'steps=', ns
   end if
+  !if(ns > 10) then
+  !  stop
+  !end if
 
   end do
 
 
+  write(*, *) 'sts_max s is', ss_max
   stop
 
 end program main
