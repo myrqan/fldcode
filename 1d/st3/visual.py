@@ -12,17 +12,35 @@ pr = read.rd_1d(datdir+'pr.dat')
 ei = read.rd_1d(datdir+'ei.dat')
 
 
-
+ns = np.size(tt)
 
 
 ## for draw graph
-fig = plt.figure(figsize=(7, 5))
+fig = plt.figure(figsize=(7, 5),)
 plt.rcParams['font.size']=13
 plt.rcParams['font.family']='STIXGeneral'
 plt.rcParams['mathtext.fontset']='stix'
-ax = fig.add_subplot(111)
+ax1 = fig.add_subplot(221)
+ax2 = fig.add_subplot(222)
+ax3 = fig.add_subplot(223)
+ax4 = fig.add_subplot(224)
 
-for n in [0,5,10,14]:
+
+#ax.plot(xx,ro[10])
+#plt.show()
+
+
+ax1.contourf(xx,tt,ro)
+ax2.contourf(xx,tt,vx)
+ax3.contourf(xx,tt,pr)
+for n in range(0,ns,ns//3):
+    ax4.plot(xx,ro[n])
+plt.show()
+
+
+exit()
+
+for n in [0,5,10]:
     ax.set_xlim(0,1)
     time = tt[n]
     ax.set_title(r'$t =$ '+str(time)[:5])

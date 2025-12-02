@@ -27,7 +27,7 @@ real(8) :: rom(ix),vxm(ix),prm(ix),eim(ix)
 real(8) :: rxm(ix)
 real(8) :: dro(ix),drx(ix),dei(ix)
 
-real(8),parameter :: av = 2.0
+real(8),parameter :: av = 5.0
 real(8) :: kx(ix)
 real(8) :: time,dt,tend,tout,dtout
 integer :: ns,nout ! ns = # of stage, nout = # of output
@@ -196,6 +196,7 @@ pr(:) = (gm-1.d0) * (ei(:) - 0.5d0*ro(:)*vx(:)**2)
 time = time + dt
 
 if (time >= tout) then
+!if(.true.) then ! for debug
   call w0d(time,'dat/t.dat')
   call w1d(ix,ro,'dat/ro.dat')
   call w1d(ix,vx,'dat/vx.dat')
@@ -205,6 +206,11 @@ if (time >= tout) then
   nout = nout + 1
   write(*,foutmsg) ns,time,nout
 endif
+
+! for debug
+!if(ns >= 10) then
+!  exit 
+!end if
 enddo !main loop
 
 

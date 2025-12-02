@@ -11,9 +11,6 @@ EXEC = a.out
 
 all : $(EXEC)
 
-run : $(TARGET)
-	./$(EXEC)
-
 $(EXEC): $(OBJS)
 	$(FC) $(FFLAGS) -o $@ $(OBJS)
 
@@ -21,7 +18,5 @@ $(EXEC): $(OBJS)
 	$(FC) $(FFLAGS) -c $<
 
 clean:
-	rm -f *.o *.mod $(EXEC)
+	rm -f *.o *.mod $(EXEC) dat/*.dat
 
-
-.PHONY: run clean

@@ -16,7 +16,7 @@ contains
     r_ix = ix - 2 * mg ! real ix (w/o margin)
     xmin = 0.d0
     xmax = 1.d0
-    dx = (xmax - xmin) / dble(r_ix)
+    dx = (xmax - xmin) / dble(r_ix-1)
     
     xx(mg+1) = xmin
 

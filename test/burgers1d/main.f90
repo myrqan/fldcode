@@ -57,18 +57,14 @@ program main
 
   !call determine_sts_s(sts_s,dx,eta)
 
-
-  !!!!!!!!!!!!!!!!!!!!!
-  !! Strang operator splitting method
-  !!!!!!!!!!!!!!!!!!!!!
-
   call cfl_ad(dt,dx,gx)
 
-  call sts_update(uu,dt/2.d0,dx,gx,eta,ss_max)
+
+  qqx(:) = 0.5d0 * uu(:) ** 2
+  qq(:) = uu(:)
 
   call advflow(uu,dx,dt,gx)
 
-  call sts_update(uu,dt/2.d0,dx,gx,eta,ss_max)
 
 
   !call cfl_tc(dt,dx,gx,eta)

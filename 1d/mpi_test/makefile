@@ -1,10 +1,10 @@
 FC = mpifort
-FFLAGS = -O2 -Wall -std=f2018
+FFLAGS = -O2 -Wall -std=f2018 -fall-intrinsics
 TARGET = main
 SRCS= main.f90
 OBJS = $(SRCS:.f90=.o)
 
-MPI_NUM = 8
+MPI_NUM = 4
 CPU_LIMIT = 50
 
 all: $(TARGET)
