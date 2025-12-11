@@ -1,4 +1,6 @@
 module datw
+  use vars, only : nprocs,my_rank,ierr
+  use mpi
   implicit none
 contains
   subroutine dataclean()
@@ -13,8 +15,11 @@ contains
     character(len=*),intent(in) :: fname
     integer :: fnum
 
+    !open(newunit=fnum,file=fname,position='append',&
+    !  & form='unformatted')
+
     open(newunit=fnum,file=fname,position='append',&
-      & form='unformatted')
+      & form='unformatted',access='stream')
     write(fnum) qq
     close(fnum)
   end subroutine w0d
@@ -31,4 +36,19 @@ contains
     write(fnum) ar
     close(fnum)
   end subroutine w1d
+
+  subroutine w1d_b_mpi(fname,ifqq,lix,mg)
+    character(len=*),intent(in) :: fname
+    integer,intent(in) :: ifqq,lix,mg
+
+    integer :: write_cnt
+    integer(kind=MPI_OFFSET_KIND) :: disp,offset,file_end_pos
+    write_cnt = lix-2*mg
+    disp=int(write_cnt,kind=MPI_OFFSET_KIND)*8_MPI_OFFSET_KIND
+    offset=int(my_rank,kind=MPI_OFFSET_KIND)*disp
+
+  
+  end subroutine w1d_b_mpi
+
+
 end module datw

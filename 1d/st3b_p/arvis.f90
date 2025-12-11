@@ -14,8 +14,7 @@ contains
 
     do ii = 2,ix-1
     kx(ii) = av * dx * (max(0.5d0*abs(vx(ii+1) - vx(ii-1)),&
-      0.5d0*abs(vy(ii+1) - vy(ii-1)), dvmin)&
-      & - dvmin)
+      0.5d0*abs(vy(ii+1) - vy(ii-1)), dvmin)-dvmin)
     enddo
 
     do ii = 1, ix-1

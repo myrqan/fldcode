@@ -1,4 +1,6 @@
 module cfl
+  use mpi
+  use vars
   implicit none
 contains
   subroutine calc_dt(dt,ix,dx,ro,vx,vy,bx,by,pr,gm)
@@ -12,6 +14,7 @@ contains
     real(8) :: vv,bb
     real(8),parameter :: pi = 4.d0 * atan(1.d0)
     integer :: ii
+    real(8) :: g_dt
 
     dt_min = 1.d-3
     dt = dt_min
@@ -24,10 +27,14 @@ contains
     dt = min(dt_tmp,dt_min,dt)
     enddo
 
-    dt = dt * safety
+    ! get global min of dt
+    call MPI_ALLREDUCE(dt,g_dt,1,MPI_DOUBLE_PRECISION, &
+      & MPI_MIN,MPI_COMM_WORLD,ierr) 
+
+    dt = g_dt * safety
 
     if (dt < 1.d-10) then
-      write(*,*) 'dt is too small < 1e-10'
+      write(*,*) 'dt is too small : dt < 1e-10'
       stop
     endif
 

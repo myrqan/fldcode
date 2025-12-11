@@ -4,7 +4,6 @@ FFLAGS = -O2
 # List of all object files
 OBJS = arvis.o boundary2d.o calculate_variables.o cfl.o file_output.o mlw.o model.o main.o
 
-# Default target: builds the executable
 all: main
 
 # Executable depends on all object files
@@ -25,6 +24,6 @@ main.o: main.f90 arvis.o boundary2d.o calculate_variables.o cfl.o file_output.o 
 
 # Clean up compiled files
 clean:
-	rm -f *.o main *.mod
+	rm -f *.o main *.mod *.dat
 
 

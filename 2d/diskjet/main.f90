@@ -18,8 +18,8 @@ PROGRAM main
   DOUBLE PRECISION,PARAMETER :: pi = 4.d0*ATAN(1.d0)
   CHARACTER(100) :: foutmsg,fstopmsg
   INTEGER,PARAMETER :: margin = 2
-  INTEGER,PARAMETER :: grid_x = 500
-  INTEGER,PARAMETER :: grid_z = 500
+  INTEGER,PARAMETER :: grid_x = 200
+  INTEGER,PARAMETER :: grid_z = 200
   INTEGER,PARAMETER :: ix = 2*margin+grid_x
   INTEGER,PARAMETER :: jx = 2*margin+grid_z
   INTEGER :: ixjx(3) = (/ix,jx,margin/)

@@ -36,3 +36,38 @@ u_{j}^{n+1} = u_{j}^n - \frac{\Delta t}{\Delta x} \left[F_{j+1/2}^{n+1/2} - F_{j
 - CFL条件を満たすようにdtの値をとるように（dtをstep毎に可変の値と）する
 - これもした．
 
+---
+## fldcode
+コードの構造は下図
+```txt
+.
+├── 1d
+│   ├── _sedov
+│   ├── mpi_test
+│   ├── sedov
+│   ├── shocktube
+│   ├── shocktube2
+│   ├── st3
+│   ├── st3_p
+│   ├── st3b
+│   └── st3b_p
+├── 2d
+│   ├── diskjet
+│   ├── sedov
+│   └── sedov_w_B
+├── README.md
+└── test
+    ├── adv_dif1d
+    ├── burgers1d
+    ├── fortran
+    └── TS1d
+```
+
+
+
+
+
+
+
+
+

@@ -12,6 +12,19 @@ vx = np.fromfile('dat/vx.dat',dtype=np.float64).reshape(ns,ix)
 vy = np.fromfile('dat/vy.dat',dtype=np.float64).reshape(ns,ix)
 pr = np.fromfile('dat/pr.dat',dtype=np.float64).reshape(ns,ix)
 
+n = ns-1
+for i in range(ix):
+    print(ro[n,i])
+exit()
+
+
+
+
+
+
+
+exit()
+
 ## for draw graph
 fig = plt.figure(figsize=(7, 5))
 plt.rcParams['font.size']=13
@@ -31,7 +44,13 @@ ax = fig.add_subplot(111)
 #
 #exit()
 #for i in range(0,ns,3):
-i = ns-1
+n = ns-1
+
+
+
+
+
+
 ax.plot(xx,ro[i])
 ax.plot(xx,vx[i])
 ax.plot(xx,pr[i])

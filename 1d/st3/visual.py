@@ -13,6 +13,7 @@ ei = read.rd_1d(datdir+'ei.dat')
 
 
 ns = np.size(tt)
+ix = np.size(xx)
 
 
 ## for draw graph
@@ -29,6 +30,10 @@ ax4 = fig.add_subplot(224)
 #ax.plot(xx,ro[10])
 #plt.show()
 
+n=ns-1
+for i in range(ix):
+    print(ro[n,i])
+exit()
 
 ax1.contourf(xx,tt,ro)
 ax2.contourf(xx,tt,vx)

@@ -17,7 +17,7 @@ implicit none
 character(len=100) :: foutmsg,fstpmsg
 integer :: mfile
 integer,parameter :: margin=1
-integer,parameter :: gx = 1000
+integer,parameter :: gx = 1200
 integer,parameter :: ix = 2*margin+gx
 real(8),parameter :: gm = 5.d0/3.d0
 real(8) :: xx(ix),xm(ix),dx
