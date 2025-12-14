@@ -2,9 +2,10 @@ program main
   !--------------------------------------------------
   ! include modules
   !--------------------------------------------------
-  use vars, only:nprocs,my_rank,ierr ! for mpi
+  use vars ! for mpi
+  use datw
   ! use init
-  ! use model
+  use model
   ! use datw
   ! use cfl
   ! use mlw
@@ -22,9 +23,10 @@ program main
   character(len=100)::foutmsg,fstpmsg
 
   ! for mpi
-  integer,parameter:: mpx=2
+  integer,parameter:: mpx=3
   integer,parameter:: mpz=2
   integer:: mpall=mpx*mpz
+  !integer:: mplx,mplz
 
   ! for programm (time stepping et al.)
   integer:: ns,nd
@@ -33,7 +35,7 @@ program main
 
   ! numerical variables (parameters)
   integer,parameter:: mg=2
-  integer,parameter:: gx=200
+  integer,parameter:: gx=300
   integer,parameter:: gz=200
     ! grid # for one mpi cells
   integer,parameter:: lix=2*mg+gx/mpx
@@ -63,6 +65,7 @@ program main
   real(8):: dro(lix,liz),detot(lix,liz),&
     drvx(lix,liz),drvy(lix,liz),drvz(lix,liz),&
     dbx(lix,liz),dby(lix,liz),dbz(lix,liz)
+  real(8):: v2(lix,liz),v2n(lix,liz),b2(lix,liz),b2n(lix,liz)
 
     ! for mlw array
   real(8):: qu(lix,liz),qfx(lix,liz),qfz(lix,liz),qr(lix,liz)
@@ -81,8 +84,9 @@ program main
 
   ! for file output
   integer:: ifxx,ifzz,ifro,ifvx,ifvy,ifvz,ifbx,ifby,ifbz,ifpr
-  integer:: write_cnt
-  integer(kind=MPI_OFFSET_KIND):: disp,offset,file_end_pos
+  integer:: write_cntx,write_cntz,write_cntxz
+  integer(kind=MPI_OFFSET_KIND):: dispx,dispz,dispxz,&
+    offsetx,offsetz,offsetxz,file_end_pos
   integer:: status(MPI_STATUS_SIZE)
 
   !--------------------------------------------------
@@ -113,17 +117,18 @@ program main
       stop
     end if
   end if
-  call MPI_BARRIER(MPI_Comm_World,ierr)
-  write_cnt=(lix-2*mg)*(liz-2*mg) ! output data size (number)
-  disp = int(write_cnt,kind=MPI_OFFSET_KIND)*8_MPI_OFFSET_KIND
-  offset=int(my_rank,kind=MPI_OFFSET_KIND)*disp
+
+  ! to determine file position when outputting data
+  !write_cnt=(lix-2*mg)*(liz-2*mg) ! output data size (number)
+  !disp = int(write_cnt,kind=MPI_OFFSET_KIND)*8_MPI_OFFSET_KIND
+  !offset=int(my_rank,kind=MPI_OFFSET_KIND)*disp
   !--------------------------------------------------
   ! setup and initialize
   !--------------------------------------------------
   ! make terminal output format
   !--------------------------------------------------
   foutmsg='(1x," WRITE  ","STEP=  ",i7," time=",e10.3," nd=",i4)'
-  fstopmsg='(1x," STOP  ","STEP=  ",i7," time=",e10.3)'
+  fstpmsg='(1x," STOP  ","STEP=  ",i7," time=",e10.3)'
   !--------------------------------------------------
   ! initialize variables
   !--------------------------------------------------
@@ -142,8 +147,14 @@ program main
   !--------------------------------------------------
   if(my_rank==0) then
     call dataclean()
-    ここにparam.txtの内容をかく
+    call put_param_int("mgn:",mg)
+    call put_param_int("gix:",gix)
+    call put_param_int("giz:",giz)
+    call put_param_int("mpx:",mpx)
+    call put_param_int("mpz:",mpz)
+    call put_param_real("specific heat:",gm)
   end if
+  call MPI_BARRIER(MPI_Comm_World,ierr)
   !--------------------------------------------------
   ! time paramters
   ! ns = # of steps; nd = # of written data
@@ -152,6 +163,27 @@ program main
   t=0.d0;tout=0.d0
   ns=0;nd=0
   !--------------------------------------------------
+  ! setup model
+  !--------------------------------------------------
+  call make_grid(xx,xm,dx,zz,zm,dz,gix,lix,giz,liz,mg)
+  ! todo
+  !call model_diskjet
+  !call calculate_ay
+
+  !call apply_bnd
+
+  !call data_output
+  if(my_rank==0) then
+    write(*,foutmsg) ns,t,nd
+  end if
+
+
+
+
+  !--------------------------------------------------
+  ! ending message
+  !--------------------------------------------------
+  call MPI_FINALIZE(ierr)
 
 
 
