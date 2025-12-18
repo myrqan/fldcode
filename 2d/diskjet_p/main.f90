@@ -4,12 +4,13 @@ program main
   !--------------------------------------------------
   use vars ! for mpi
   use datw
+  use const
   ! use init
   use model
-  ! use datw
-  ! use cfl
+  use calc
+  use cfl
   ! use mlw
-  ! use bnd2d
+  use bnd2d
   ! use arvis
   ! use exc
   use mpi
@@ -23,9 +24,9 @@ program main
   character(len=100)::foutmsg,fstpmsg
 
   ! for mpi
-  integer,parameter:: mpx=3
-  integer,parameter:: mpz=2
-  integer:: mpall=mpx*mpz
+  !integer,parameter:: mpx=3
+  !integer,parameter:: mpz=2
+  !integer:: mpall=mpx*mpz
   !integer:: mplx,mplz
 
   ! for programm (time stepping et al.)
@@ -35,8 +36,8 @@ program main
 
   ! numerical variables (parameters)
   integer,parameter:: mg=2
-  integer,parameter:: gx=300
-  integer,parameter:: gz=200
+  integer,parameter:: gx=600
+  integer,parameter:: gz=1200
     ! grid # for one mpi cells
   integer,parameter:: lix=2*mg+gx/mpx
   integer,parameter:: liz=2*mg+gz/mpz
@@ -65,6 +66,8 @@ program main
   real(8):: dro(lix,liz),detot(lix,liz),&
     drvx(lix,liz),drvy(lix,liz),drvz(lix,liz),&
     dbx(lix,liz),dby(lix,liz),dbz(lix,liz)
+  real(8):: grx(lix,liz),grz(lix,liz),&
+    grxm(lix,liz),grzm(lix,liz)
   real(8):: v2(lix,liz),v2n(lix,liz),b2(lix,liz),b2n(lix,liz)
 
     ! for mlw array
@@ -75,19 +78,12 @@ program main
   real(8),parameter:: qv=10.d0
   real(8):: kx(lix,liz),kz(lix,liz)
 
-  ! mathematical constants
-  real(8),parameter:: pi=4.d0*datan(1.d0)
-  
   ! for flooring
   ! real(8),parameter::ro_floor=1.d-6
   ! real(8),parameter::pr_floor=1.d-7
 
   ! for file output
-  integer:: ifxx,ifzz,ifro,ifvx,ifvy,ifvz,ifbx,ifby,ifbz,ifpr
-  integer:: write_cntx,write_cntz,write_cntxz
-  integer(kind=MPI_OFFSET_KIND):: dispx,dispz,dispxz,&
-    offsetx,offsetz,offsetxz,file_end_pos
-  integer:: status(MPI_STATUS_SIZE)
+  character(80):: dir
 
   !--------------------------------------------------
   ! setup for mpi (message passing interface)
@@ -100,7 +96,7 @@ program main
     ! check number of mpi
     if(nprocs/=mpx*mpz) then
       write(*,*) "number of processes is not consistent"
-      write(*,*) "change mpx and mpz in main.f90 or MPINUM in makefile"
+      write(*,*) "change mpx and mpz in vars.f90 or MPINUM in makefile"
       write(*,*) "nprocs= ", nprocs
       write(*,*) "(mpx,mpz)=", mpx,mpz
       call MPI_FINALIZE(ierr)
@@ -118,10 +114,6 @@ program main
     end if
   end if
 
-  ! to determine file position when outputting data
-  !write_cnt=(lix-2*mg)*(liz-2*mg) ! output data size (number)
-  !disp = int(write_cnt,kind=MPI_OFFSET_KIND)*8_MPI_OFFSET_KIND
-  !offset=int(my_rank,kind=MPI_OFFSET_KIND)*disp
   !--------------------------------------------------
   ! setup and initialize
   !--------------------------------------------------
@@ -166,16 +158,60 @@ program main
   ! setup model
   !--------------------------------------------------
   call make_grid(xx,xm,dx,zz,zm,dz,gix,lix,giz,liz,mg)
-  ! todo
-  !call model_diskjet
-  !call calculate_ay
-
-  !call apply_bnd
-
-  !call data_output
+  call model_diskjet(ro,vx,vy,vz,bx,by,bz,pr,&
+    gm,grx,grxm,grz,grzm,xx,zz,lix,liz,dx,dz,mg)
+  call calc_ay(ay,bz,xx,zz,lix,liz)
+  call calc_efield(bx,by,bz,vx,vy,vz,ex,ey,ez)
+  call calc_etot(ro,pr,vx,vy,vz,bx,by,bz,etot,gm)
+  !--------------------------------------------------
+  ! output (todo module (subroutine)) 1st time
+  !--------------------------------------------------
+  write(dir,'(A,i3.3,"_")') 'dat/', nd
+  if(my_rank==0) then
+    call put_time_data('dat/t.dat',t)
+  end if
+  call put_2d_data_each_rank(&
+    trim(dir)//'ro',lix,liz,mg,ro)
+  call put_2d_data_each_rank(&
+    trim(dir)//'vx',lix,liz,mg,vx)
+  call put_2d_data_each_rank(&
+    trim(dir)//'vy',lix,liz,mg,vy)
+  call put_2d_data_each_rank(&
+    trim(dir)//'vz',lix,liz,mg,vz)
+  call put_2d_data_each_rank(&
+    trim(dir)//'bx',lix,liz,mg,bx)
+  call put_2d_data_each_rank(&
+    trim(dir)//'by',lix,liz,mg,by)
+  call put_2d_data_each_rank(&
+    trim(dir)//'bz',lix,liz,mg,bz)
+  call put_2d_data_each_rank(&
+    trim(dir)//'pr',lix,liz,mg,pr)
+  call put_2d_data_each_rank(&
+    trim(dir)//'ay',lix,liz,mg,ay)
   if(my_rank==0) then
     write(*,foutmsg) ns,t,nd
   end if
+  nd=nd+1
+  tout = tout+dtout
+
+  !--------------------------------------------------
+  ! main loop (time integration)
+  !--------------------------------------------------
+  main_loop:&
+    do while(t<tend)
+  !--------------------------------------------------
+  ! determine time interval using CFL cond.
+  !--------------------------------------------------
+  call calc_dt(ro,vx,vy,vz,pr,bx,by,bz,gm,lix,liz,dt,dx,dz,mg)
+
+  !--------------------------------------------------
+  ! for debug
+  !--------------------------------------------------
+  call MPI_FINALIZE(ierr)
+  stop
+
+  end do main_loop
+
 
 
 

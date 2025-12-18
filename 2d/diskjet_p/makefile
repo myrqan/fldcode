@@ -1,6 +1,6 @@
 FC     = mpifort
 FFLAGS = -O2 -std=f2018
-#FFLAGS += -Wall
+FFLAGS += -Wall
 EXEC   = a.out
 
 VISUAL = visual.py
@@ -11,8 +11,8 @@ CPU_LIMIT = 50
 SRCS = $(wildcard *.f90)
 OBJS = $(SRCS:.f90=.o)
 
-MOD_ROOT = vars.o
-MOD_ROOT2 = datw.o
+MOD_ROOT = vars.o const.o
+MOD_ROOT2 = datw.o bnd2d.o
 OBJ_MAIN = main.o
 OBJ_SUBS = $(filter-out $(MOD_ROOT) $(MOD_ROOT2) $(OBJ_MAIN), $(OBJS))
 
@@ -42,3 +42,4 @@ $(OBJ_MAIN): $(OBJ_SUBS)
 clean:
 	rm -f $(EXEC) *.o *.mod dat/*.dat graph/*.png
 	rm -rf __pycache__/
+	rm -f param.txt
