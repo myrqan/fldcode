@@ -6,7 +6,7 @@ contains
     INTEGER,INTENT(IN)::ix,jx
     DOUBLE PRECISION,INTENT(IN)::dt,dx,dz
     DOUBLE PRECISION,INTENT(IN)::u(ix,jx),fx(ix,jx),fz(ix,jx)
-    DOUBLE PRECISION,INTENT(OUT)::un(ix,jx),du(ix,jx)
+    DOUBLE PRECISION,INTENT(inOUT)::un(ix,jx),du(ix,jx)
     INTEGER::i,j
     do j=1,jx-1
     do i=1,ix-1

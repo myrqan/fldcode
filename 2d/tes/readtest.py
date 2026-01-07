@@ -72,13 +72,13 @@ def load_data(var,steps,datdir='dat'):
 
 ### changeable
 target_steps = [0]
-target_var = 'bz'
+target_var = 'ro'
 
 ro,time_vals = load_data('ro',target_steps)
-pr,time_vals = load_data('pr',target_steps)
-bz,time_vals = load_data('bz',target_steps)
+#pr,time_vals = load_data('pr',target_steps)
+#bz,time_vals = load_data('bz',target_steps)
 
-x,z=np.meshgrid(xx,zz)
+x,z=np.meshgrid(xx,zz,indexing='ij')
 
 ## for draw graph
 fig = plt.figure(figsize=(7, 5))
@@ -88,8 +88,9 @@ plt.rcParams['mathtext.fontset']='stix'
 ax = fig.add_subplot(111)
 ax.set_aspect('equal')
 
-ax.set_xlim(0,3.0)
-ax.set_ylim(0,3.0)
+ax.set_xlim(xx.min(),xx.max())
+#ax.set_ylim(0,3.0)
+ax.set_ylim(zz.min(),zz.max())
 
 ## select frame index < len(targt_steps)
 frame_idx = 0
@@ -99,7 +100,17 @@ current_step = target_steps[frame_idx]
 
 cmap_obj=sns.color_palette("coolwarm",as_cmap=True)
 
-cont = ax.contourf(x,z,np.log10(ro[frame_idx,:,:].T),levels=np.linspace(-4,1,11),extend='both',vmin=-4,vmax=1,cmap=cmap_obj)
+cont = ax.contourf(
+        x,
+        z,
+        ro[frame_idx,:,:],
+        #np.log10(ro[frame_idx,:,:].T),
+        #levels=np.linspace(-4,1,11),
+        #extend='both',
+        #vmin=-4,
+        #vmax=1,
+        cmap=cmap_obj
+        )
 
 cbar = plt.colorbar(cont,ax=ax)
 cbar.set_label(r'$\rho$')

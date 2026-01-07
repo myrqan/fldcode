@@ -16,8 +16,8 @@ contains
     !--------------------------------------------------
     ! xmin, xmax, zmin, zmax value
     !--------------------------------------------------
-    xmin= 0.07d0
-    !xmin=0.d0
+    !xmin= 0.07d0
+    xmin=0.d0
     xmax= 3.d0
     zmin= 0.d0
     zmax= 7.d0
@@ -38,16 +38,12 @@ contains
     dz=(zmax-zmin)/real(gz,8)
 
     do ii=1,lix
-      !g_idx_ofs=mplx*lx+ii-mg-1
-      !xx(ii)=xmin+(g_idx_ofs+0.5d0)*dx
-      g_idx_ofs = mplx * lx + (ii - mg)
-      xx(ii) = xmin + (dble(g_idx_ofs) - 0.5d0) * dx
+      g_idx_ofs=mplx*lx+ii-mg-1
+      xx(ii)=xmin+(g_idx_ofs+0.5d0)*dx
     end do
     do jj=1,liz
-      !g_idz_ofs=mplz*lz+jj-mg-1
-      !zz(jj)=zmin+(g_idz_ofs+0.5d0)*dz
-      g_idz_ofs = mplz * lz + (jj - mg)
-      zz(jj) = zmin + (dble(g_idz_ofs) - 0.5d0) * dz
+      g_idz_ofs=mplz*lz+jj-mg-1
+      zz(jj)=zmin+(g_idz_ofs+0.5d0)*dz
     end do
 
     do ii=1,lix-1

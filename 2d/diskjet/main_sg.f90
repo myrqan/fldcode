@@ -1,52 +1,52 @@
-program main
+PROGRAM main
   !========================================
-  !! import modules
+  !! IMPORT MODULES
   !========================================
-  use arvis
-  use boundary2d
-  use cfl
-  use calculate_variables
-  use file_output
-  use mlw
-  use model
-  use, intrinsic :: ieee_arithmetic, only: ieee_is_nan
+  USE arvis
+  USE boundary2d
+  USE cfl
+  USE calculate_variables
+  USE file_output
+  USE mlw
+  USE model
+  USE, INTRINSIC :: IEEE_ARITHMETIC, ONLY: IEEE_IS_NAN
 
   !========================================
-  !! variables definition
+  !! VARIABLES DEFINITION
   !========================================
-  implicit none
-  double precision,parameter :: pi = 4.d0*atan(1.d0)
-  character(100) :: foutmsg,fstopmsg
-  integer,parameter :: margin = 4
-  integer,parameter :: grid_x = 200
-  integer,parameter :: grid_z = 200
-  integer,parameter :: ix = 2*margin+grid_x
-  integer,parameter :: jx = 2*margin+grid_z
-  integer :: ixjx(3) = (/ix,jx,margin/)
+  IMPLICIT NONE
+  DOUBLE PRECISION,PARAMETER :: pi = 4.d0*ATAN(1.d0)
+  CHARACTER(100) :: foutmsg,fstopmsg
+  INTEGER,PARAMETER :: margin = 2
+  INTEGER,PARAMETER :: grid_x = 200
+  INTEGER,PARAMETER :: grid_z = 200
+  INTEGER,PARAMETER :: ix = 2*margin+grid_x
+  INTEGER,PARAMETER :: jx = 2*margin+grid_z
+  INTEGER :: ixjx(3) = (/ix,jx,margin/)
 
-  double precision :: x(ix,jx),xm(ix,jx),dx
-  double precision :: z(ix,jx),zm(ix,jx),dz
-  double precision :: gx(ix,jx),gxm(ix,jx),gz(ix,jx),gzm(ix,jx)
+  DOUBLE PRECISION :: x(ix,jx),xm(ix,jx),dx
+  DOUBLE PRECISION :: z(ix,jx),zm(ix,jx),dz
+  DOUBLE PRECISION :: gx(ix,jx),gxm(ix,jx),gz(ix,jx),gzm(ix,jx)
 
-  double precision :: u(ix,jx),fx(ix,jx),fz(ix,jx),r(ix,jx)
-  double precision :: ro(ix,jx),vx(ix,jx),vy(ix,jx),vz(ix,jx),&
+  DOUBLE PRECISION :: u(ix,jx),fx(ix,jx),fz(ix,jx),r(ix,jx)
+  DOUBLE PRECISION :: ro(ix,jx),vx(ix,jx),vy(ix,jx),vz(ix,jx),&
     bx(ix,jx),by(ix,jx),bz(ix,jx),ex(ix,jx),ey(ix,jx),ez(ix,jx),&
     p(ix,jx),etot(ix,jx),ay(ix,jx)
-  double precision :: ron(ix,jx),vxn(ix,jx),vyn(ix,jx),vzn(ix,jx),&
+  DOUBLE PRECISION :: ron(ix,jx),vxn(ix,jx),vyn(ix,jx),vzn(ix,jx),&
     bxn(ix,jx),byn(ix,jx),bzn(ix,jx),exn(ix,jx),eyn(ix,jx),ezn(ix,jx),&
     pn(ix,jx),etotn(ix,jx)
-  double precision :: rvx(ix,jx),rvy(ix,jx),rvz(ix,jx)
-  double precision :: rvxn(ix,jx),rvyn(ix,jx),rvzn(ix,jx)
-  double precision :: dro(ix,jx),drvx(ix,jx),drvy(ix,jx),drvz(ix,jx),&
+  DOUBLE PRECISION :: rvx(ix,jx),rvy(ix,jx),rvz(ix,jx)
+  DOUBLE PRECISION :: rvxn(ix,jx),rvyn(ix,jx),rvzn(ix,jx)
+  DOUBLE PRECISION :: dro(ix,jx),drvx(ix,jx),drvy(ix,jx),drvz(ix,jx),&
     detot(ix,jx),dbx(ix,jx),dby(ix,jx),dbz(ix,jx)
-  double precision :: v2(ix,jx),v2n(ix,jx),b2(ix,jx),b2n(ix,jx)
-  double precision :: kx(ix,jx),kz(ix,jx),qv
-  double precision,parameter :: gm = 5.d0/3.d0
+  DOUBLE PRECISION :: v2(ix,jx),v2n(ix,jx),b2(ix,jx),b2n(ix,jx)
+  DOUBLE PRECISION :: kx(ix,jx),kz(ix,jx),qv
+  DOUBLE PRECISION,PARAMETER :: gm = 5.d0/3.d0
 
-  integer :: ns,nd
-  double precision :: t,dt,tend,tout,dtout
+  INTEGER :: ns,nd
+  DOUBLE PRECISION :: t,dt,tend,tout,dtout
 
-  integer :: i,j
+  INTEGER :: i,j
 
   !========================================
   !!  setup & initialize
@@ -54,8 +54,8 @@ program main
   !!  make stdout format
   !========================================
 
-  foutmsg='(1x," write  ","step=  ",i7," time=",e10.3," nd=",i4)'
-  fstopmsg='(1x," stop  ","step=  ",i7," time=",e10.3)'
+  foutmsg='(1x," WRITE  ","STEP=  ",i7," time=",e10.3," nd=",i4)'
+  fstopmsg='(1x," STOP  ","STEP=  ",i7," time=",e10.3)'
 
   !========================================
   !! initialize variables
@@ -95,25 +95,25 @@ program main
   !========================================
   !! initialize parameter files & data files
   !========================================
-  call clean()
-  call put_param_int("margin:",margin)
-  call put_param_int("ix: ",ix)
-  call put_param_int("jx: ",jx)
-  call write_1d_int("ixjx.dat",ixjx)
+  CALL clean()
+  CALL put_param_int("margin:",margin)
+  CALL put_param_int("ix: ",ix)
+  CALL put_param_int("jx: ",jx)
+  CALL write_1d_int("ixjx.dat",ixjx)
 
 
   !========================================
   !! setup models
   !========================================
 
-  call make_grid(x,xm,dx,z,zm,dz,ix,jx,margin)
-  call diskjet(ro,vx,vy,vz,bx,by,bz,p,gm,gx,gxm,gz,gzm,x,z,ix,jx,dx,dz)
-  !call sedov_with_b(ro,vx,vy,vz,bx,by,bz,p,x,z,ix,jx)
-  call calc_ay(x,z,bx,by,bz,ix,jx,ay)
+  CALL make_grid(x,xm,dx,z,zm,dz,ix,jx,margin)
+  CALL diskjet(ro,vx,vy,vz,bx,by,bz,p,gm,gx,gxm,gz,gzm,x,z,ix,jx,dx,dz)
+  !CALL sedov_with_b(ro,vx,vy,vz,bx,by,bz,p,x,z,ix,jx)
+  CALL calc_ay(x,z,bx,by,bz,ix,jx,ay)
   !gx(:,:)=0.d0;gz(:,:)=0.d0;gxm(:,:)=0.d0;gzm(:,:)=0.d0
 
 
-  ! apply boundary conditions
+  ! Apply boundary conditions
   !
   ! (zmax) |-------------|
   !        |      2      |
@@ -142,104 +142,104 @@ program main
   ! num2 : symmetric same sign(0) or symmetric different sign(1) or free(2)
 
 
-  ! (apply bc for ro,v,b,p)
+  ! (apply BC for ro,v,b,p)
   !0220
-  call bc(ro,0,0,margin,ix,jx)
-  call bc(ro,1,2,margin,ix,jx)
-  call bc(ro,2,2,margin,ix,jx)
-  call bc(ro,3,0,margin,ix,jx)
+  CALL bc(ro,0,0,margin,ix,jx)
+  CALL bc(ro,1,2,margin,ix,jx)
+  CALL bc(ro,2,2,margin,ix,jx)
+  CALL bc(ro,3,0,margin,ix,jx)
 
   !0221
-  call bc(vx,0,0,margin,ix,jx)
-  call bc(vx,1,2,margin,ix,jx)
-  call bc(vx,2,2,margin,ix,jx)
-  call bc(vx,3,1,margin,ix,jx)
+  CALL bc(vx,0,0,margin,ix,jx)
+  CALL bc(vx,1,2,margin,ix,jx)
+  CALL bc(vx,2,2,margin,ix,jx)
+  CALL bc(vx,3,1,margin,ix,jx)
 
   !0221
-  call bc(vy,0,0,margin,ix,jx)
-  call bc(vy,1,2,margin,ix,jx)
-  call bc(vy,2,2,margin,ix,jx)
-  call bc(vy,3,1,margin,ix,jx)
+  CALL bc(vy,0,0,margin,ix,jx)
+  CALL bc(vy,1,2,margin,ix,jx)
+  CALL bc(vy,2,2,margin,ix,jx)
+  CALL bc(vy,3,1,margin,ix,jx)
 
   !1220
-  call bc(vz,0,1,margin,ix,jx)
-  call bc(vz,1,2,margin,ix,jx)
-  call bc(vz,2,2,margin,ix,jx)
-  call bc(vz,3,0,margin,ix,jx)
+  CALL bc(vz,0,1,margin,ix,jx)
+  CALL bc(vz,1,2,margin,ix,jx)
+  CALL bc(vz,2,2,margin,ix,jx)
+  CALL bc(vz,3,0,margin,ix,jx)
 
   !1221
-  call bc(bx,0,1,margin,ix,jx)
-  call bc(bx,1,2,margin,ix,jx)
-  call bc(bx,2,2,margin,ix,jx)
-  call bc(bx,3,1,margin,ix,jx)
+  CALL bc(bx,0,1,margin,ix,jx)
+  CALL bc(bx,1,2,margin,ix,jx)
+  CALL bc(bx,2,2,margin,ix,jx)
+  CALL bc(bx,3,1,margin,ix,jx)
 
   !1221
-  call bc(by,0,1,margin,ix,jx)
-  call bc(by,1,2,margin,ix,jx)
-  call bc(by,2,2,margin,ix,jx)
-  call bc(by,3,1,margin,ix,jx)
+  CALL bc(by,0,1,margin,ix,jx)
+  CALL bc(by,1,2,margin,ix,jx)
+  CALL bc(by,2,2,margin,ix,jx)
+  CALL bc(by,3,1,margin,ix,jx)
 
   !0220
-  call bc(bz,0,0,margin,ix,jx)
-  call bc(bz,1,2,margin,ix,jx)
-  call bc(bz,2,2,margin,ix,jx)
-  call bc(bz,3,0,margin,ix,jx)
+  CALL bc(bz,0,0,margin,ix,jx)
+  CALL bc(bz,1,2,margin,ix,jx)
+  CALL bc(bz,2,2,margin,ix,jx)
+  CALL bc(bz,3,0,margin,ix,jx)
 
   !0220
-  call bc(p,0,0,margin,ix,jx)
-  call bc(p,1,2,margin,ix,jx)
-  call bc(p,2,2,margin,ix,jx)
-  call bc(p,3,0,margin,ix,jx)
+  CALL bc(p,0,0,margin,ix,jx)
+  CALL bc(p,1,2,margin,ix,jx)
+  CALL bc(p,2,2,margin,ix,jx)
+  CALL bc(p,3,0,margin,ix,jx)
 
  !! apply boudary conditions for g{x,z}(m)
  !0221
-  call bc(gx,0,0,margin,ix,jx)
-  call bc(gx,1,2,margin,ix,jx)
-  call bc(gx,2,2,margin,ix,jx)
-  call bc(gx,3,1,margin,ix,jx)
+  CALL bc(gx,0,0,margin,ix,jx)
+  CALL bc(gx,1,2,margin,ix,jx)
+  CALL bc(gx,2,2,margin,ix,jx)
+  CALL bc(gx,3,1,margin,ix,jx)
   !1220
-  call bc(gz,0,1,margin,ix,jx)
-  call bc(gz,1,2,margin,ix,jx)
-  call bc(gz,2,2,margin,ix,jx)
-  call bc(gz,3,0,margin,ix,jx)
+  CALL bc(gz,0,1,margin,ix,jx)
+  CALL bc(gz,1,2,margin,ix,jx)
+  CALL bc(gz,2,2,margin,ix,jx)
+  CALL bc(gz,3,0,margin,ix,jx)
   !0221
-  call bc(gxm,0,0,margin,ix,jx)
-  call bc(gxm,1,2,margin,ix,jx)
-  call bc(gxm,2,2,margin,ix,jx)
-  call bc(gxm,3,1,margin,ix,jx)
+  CALL bc(gxm,0,0,margin,ix,jx)
+  CALL bc(gxm,1,2,margin,ix,jx)
+  CALL bc(gxm,2,2,margin,ix,jx)
+  CALL bc(gxm,3,1,margin,ix,jx)
   !1220 
-  call bc(gzm,0,1,margin,ix,jx)
-  call bc(gzm,1,2,margin,ix,jx)
-  call bc(gzm,2,2,margin,ix,jx)
-  call bc(gzm,3,0,margin,ix,jx)
+  CALL bc(gzm,0,1,margin,ix,jx)
+  CALL bc(gzm,1,2,margin,ix,jx)
+  CALL bc(gzm,2,2,margin,ix,jx)
+  CALL bc(gzm,3,0,margin,ix,jx)
 
 
-  call calc_e(bx,by,bz,vx,vy,vz,ex,ey,ez)
-  call calc_etot(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
+  CALL calc_e(bx,by,bz,vx,vy,vz,ex,ey,ez)
+  CALL calc_etot(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
 
   !========================================
   !! data output (1st time)
   !========================================
-  call write_0d_dble("t.dat",t)
-  call write_2d_dble("x.dat",x)
-  call write_2d_dble("z.dat",z)
-  call write_2d_dble("ro.dat",ro)
-  call write_2d_dble("vx.dat",vx)
-  call write_2d_dble("vy.dat",vy)
-  call write_2d_dble("vz.dat",vz)
-  call write_2d_dble("bx.dat",bx)
-  call write_2d_dble("by.dat",by)
-  call write_2d_dble("bz.dat",bz)
-  call write_2d_dble("p.dat",p)
-  call write_2d_dble('etot.dat',etot)
-  call write_2d_dble("ay.dat",ay)
+  CALL write_0d_dble("t.dat",t)
+  CALL write_2d_dble("x.dat",x)
+  CALL write_2d_dble("z.dat",z)
+  CALL write_2d_dble("ro.dat",ro)
+  CALL write_2d_dble("vx.dat",vx)
+  CALL write_2d_dble("vy.dat",vy)
+  CALL write_2d_dble("vz.dat",vz)
+  CALL write_2d_dble("bx.dat",bx)
+  CALL write_2d_dble("by.dat",by)
+  CALL write_2d_dble("bz.dat",bz)
+  CALL write_2d_dble("p.dat",p)
+  CALL write_2d_dble('etot.dat',etot)
+  CALL write_2d_dble("ay.dat",ay)
   write(*,foutmsg) ns,t,nd
   nd = nd + 1
   !dtout = 0.d0
   tout = tout + dtout
 
   !========================================
-  !!  main loop (time integration)
+  !!  MAIN LOOP (TIME INTEGRATION)
   !========================================
   main_loop:&
     do while(t < tend)
@@ -248,8 +248,8 @@ program main
 !      write(*,*) "ns=", ns, "t=", t
 !    endif
 
-  !! calculate dt using cfl condition
-  call calc_dt(ro,vx,vy,vz,p,bx,by,bz,gm,ix,jx,dt,dx,dz,margin)
+  !! Calculate dt using CFL condition
+  CALL calc_dt(ro,vx,vy,vz,p,bx,by,bz,gm,ix,jx,dt,dx,dz,margin)
   
 
   !! initialize variables
@@ -266,14 +266,14 @@ program main
   v2(:,:) = vx(:,:)**2+vy(:,:)**2+vz(:,:)**2
 
   !========================================
-  !! 1st step
+  !! 1st STEP
   !========================================
   !----- density-----!
   fx(:,:) = ro(:,:)*vx(:,:)
   fz(:,:) = ro(:,:)*vz(:,:)
   r(:,:) = -fx(:,:) / x(:,:)
-  call mlw2d1st(ro,fx,fz,ron,dro,ix,jx,dt,dx,dz)
-  call mlw2dsrc1st(r,ron,dro,ix,jx,dt,dx,dz)
+  CALL mlw2d1st(ro,fx,fz,ron,dro,ix,jx,dt,dx,dz)
+  CALL mlw2dsrc1st(r,ron,dro,ix,jx,dt,dx,dz)
 
   !----- x-momentum -----!
   fx(:,:) = ro(:,:)*vx(:,:)**2+p(:,:)&
@@ -281,23 +281,23 @@ program main
   fz(:,:) = ro(:,:)*vz(:,:)*vx(:,:)-bz(:,:)*bx(:,:)
   r(:,:) = - (ro(:,:)*(vx(:,:)**2-vy(:,:)**2) &
     - (bx(:,:)**2-by(:,:)**2))/x(:,:) + ro(:,:)*gx(:,:)
-  call mlw2d1st(rvx,fx,fz,rvxn,drvx,ix,jx,dt,dx,dz)
-  call mlw2dsrc1st(r,rvxn,drvx,ix,jx,dt,dx,dz)
+  CALL mlw2d1st(rvx,fx,fz,rvxn,drvx,ix,jx,dt,dx,dz)
+  CALL mlw2dsrc1st(r,rvxn,drvx,ix,jx,dt,dx,dz)
 
   !----- y-momentum -----!
   fx(:,:) = ro(:,:)*vx(:,:)*vy(:,:)-bx(:,:)*by(:,:)
   fz(:,:) = ro(:,:)*vz(:,:)*vy(:,:)-bz(:,:)*by(:,:)
   r(:,:) = -2.d0 * fx(:,:)/x(:,:)
-  call mlw2d1st(rvy,fx,fz,rvyn,drvy,ix,jx,dt,dx,dz)
-  call mlw2dsrc1st(r,rvyn,drvy,ix,jx,dt,dx,dz)
+  CALL mlw2d1st(rvy,fx,fz,rvyn,drvy,ix,jx,dt,dx,dz)
+  CALL mlw2dsrc1st(r,rvyn,drvy,ix,jx,dt,dx,dz)
 
   !----- z-momentum -----!
   fx(:,:) = ro(:,:)*vx(:,:)*vz(:,:)-bx(:,:)*bz(:,:)
   fz(:,:) = ro(:,:)*vz(:,:)**2+p(:,:)&
     +0.5d0*(bx(:,:)**2+by(:,:)**2-bz(:,:)**2)
   r(:,:) = - fx(:,:)/x(:,:) + ro(:,:)*gz(:,:)
-  call mlw2d1st(rvz,fx,fz,rvzn,drvz,ix,jx,dt,dx,dz)
-  call mlw2dsrc1st(r,rvzn,drvz,ix,jx,dt,dx,dz)
+  CALL mlw2d1st(rvz,fx,fz,rvzn,drvz,ix,jx,dt,dx,dz)
+  CALL mlw2dsrc1st(r,rvzn,drvz,ix,jx,dt,dx,dz)
 
   !----- energy -----!
   fx(:,:) = (gm/(gm-1.d0)*p(:,:) + 0.5d0*ro(:,:)*v2(:,:))*vx(:,:)& 
@@ -306,26 +306,26 @@ program main
     + (ex(:,:)*by(:,:)-ey(:,:)*bx(:,:))
   r(:,:) = -fx(:,:) / x(:,:) &
     + ro(:,:)*gx(:,:)*vx(:,:) + ro(:,:)*gz(:,:)*vz(:,:)
-  call mlw2d1st(etot,fx,fz,etotn,detot,ix,jx,dt,dx,dz)
-  call mlw2dsrc1st(r,etotn,detot,ix,jx,dt,dx,dz)
+  CALL mlw2d1st(etot,fx,fz,etotn,detot,ix,jx,dt,dx,dz)
+  CALL mlw2dsrc1st(r,etotn,detot,ix,jx,dt,dx,dz)
 
   fx(:,:) = 0.d0
   fz(:,:) = -ey(:,:)
   r(:,:) = 0.d0
-  call mlw2d1st(bx,fx,fz,bxn,dbx,ix,jx,dt,dx,dz)
-  ! call mlw2dsrc1st()
+  CALL mlw2d1st(bx,fx,fz,bxn,dbx,ix,jx,dt,dx,dz)
+  ! CALL mlw2dsrc1st()
 
   fx(:,:) = -ez(:,:)
   fz(:,:) = ex(:,:)
   r(:,:) = 0.d0
-  call mlw2d1st(by,fx,fz,byn,dby,ix,jx,dt,dx,dz)
-  ! call mlw2dsrc1st()
+  CALL mlw2d1st(by,fx,fz,byn,dby,ix,jx,dt,dx,dz)
+  ! CALL mlw2dsrc1st()
 
   fx(:,:) = ey(:,:)
   fz(:,:) = 0.d0
   r(:,:) = - fx(:,:) / x(:,:)
-  call mlw2d1st(bz,fx,fz,bzn,dbz,ix,jx,dt,dx,dz)
-  call mlw2dsrc1st(r,bzn,dbz,ix,jx,dt,dx,dz)
+  CALL mlw2d1st(bz,fx,fz,bzn,dbz,ix,jx,dt,dx,dz)
+  CALL mlw2dsrc1st(r,bzn,dbz,ix,jx,dt,dx,dz)
 
   !  get half step value
   vxn(:,:) = rvxn(:,:) / ron(:,:)
@@ -333,8 +333,8 @@ program main
   vzn(:,:) = rvzn(:,:) / ron(:,:)
   
   ! get pn & e{x,y,z}n
-  call calc_p(ron,pn,vxn,vyn,vzn,bxn,byn,bzn,etotn,gm,ix,jx)
-  call calc_e(bxn,byn,bzn,vxn,vyn,vzn,exn,eyn,ezn)
+  CALL calc_p(ron,pn,vxn,vyn,vzn,bxn,byn,bzn,etotn,gm,ix,jx)
+  CALL calc_e(bxn,byn,bzn,vxn,vyn,vzn,exn,eyn,ezn)
 
 
   !!!!!
@@ -348,20 +348,20 @@ program main
     endif
   enddo
   enddo
-  call calc_etot(ron,pn,vxn,vyn,vzn,bxn,byn,bzn,etotn,gm,ix,jx)
+  CALL calc_etot(ron,pn,vxn,vyn,vzn,bxn,byn,bzn,etotn,gm,ix,jx)
   !!!!!
 
   
   !========================================
-  !! 2nd step
+  !! 2nd STEP
   !========================================
 
   !----- density -----!
   fx(:,:) = ron(:,:)*vxn(:,:)
   fz(:,:) = ron(:,:)*vzn(:,:)
   r(:,:) = -fx(:,:) / xm(:,:)
-  call mlw2d2nd(fx,fz,dro,ix,jx,dt,dx,dz)
-  call mlw2dsrc2nd(dro,r,ix,jx,dt,dx,dz)
+  CALL mlw2d2nd(fx,fz,dro,ix,jx,dt,dx,dz)
+  CALL mlw2dsrc2nd(dro,r,ix,jx,dt,dx,dz)
 
   !----- x-momentum -----!
   fx(:,:) = ron(:,:)*vxn(:,:)**2+pn(:,:)&
@@ -369,23 +369,23 @@ program main
   fz(:,:) = ron(:,:)*vzn(:,:)*vxn(:,:)-bzn(:,:)*bxn(:,:)
   r(:,:) = - (ron(:,:)*(vxn(:,:)**2-vyn(:,:)**2)&
     -(bxn(:,:)**2-byn(:,:)**2)) / xm(:,:) + ron(:,:)*gxm(:,:)
-  call mlw2d2nd(fx,fz,drvx,ix,jx,dt,dx,dz)
-  call mlw2dsrc2nd(drvx,r,ix,jx,dt,dx,dz)
+  CALL mlw2d2nd(fx,fz,drvx,ix,jx,dt,dx,dz)
+  CALL mlw2dsrc2nd(drvx,r,ix,jx,dt,dx,dz)
 
   !----- y-momentum -----!
   fx(:,:) = ron(:,:)*vxn(:,:)*vyn(:,:)-bxn(:,:)*byn(:,:)
   fz(:,:) = ron(:,:)*vzn(:,:)*vyn(:,:)-bzn(:,:)*byn(:,:)
   r(:,:) = -2.d0 * fx(:,:)/xm(:,:)
-  call mlw2d2nd(fx,fz,drvy,ix,jx,dt,dx,dz)
-  call mlw2dsrc2nd(drvy,r,ix,jx,dt,dx,dz)
+  CALL mlw2d2nd(fx,fz,drvy,ix,jx,dt,dx,dz)
+  CALL mlw2dsrc2nd(drvy,r,ix,jx,dt,dx,dz)
 
   !----- z-momentum -----!
   fx(:,:) = ron(:,:)*vxn(:,:)*vzn(:,:)-bxn(:,:)*bzn(:,:)
   fz(:,:) = ron(:,:)*vzn(:,:)**2+pn(:,:)&
     +0.5d0*(bxn(:,:)**2+byn(:,:)**2-bzn(:,:)**2)
   r(:,:) = - fx(:,:)/xm(:,:) + ron(:,:)*gzm(:,:)
-  call mlw2d2nd(fx,fz,drvz,ix,jx,dt,dx,dz)
-  call mlw2dsrc2nd(drvz,r,ix,jx,dt,dx,dz)
+  CALL mlw2d2nd(fx,fz,drvz,ix,jx,dt,dx,dz)
+  CALL mlw2dsrc2nd(drvz,r,ix,jx,dt,dx,dz)
 
   v2n(:,:) = vxn(:,:)**2 + vyn(:,:)**2 + vzn(:,:)**2
 
@@ -396,30 +396,30 @@ program main
     + (exn(:,:)*byn(:,:)-eyn(:,:)*bxn(:,:))
   r(:,:) = -fx(:,:) / xm(:,:) &
      + ron(:,:)*gxm(:,:)*vxn(:,:) + ron(:,:)*gzm(:,:)*vzn(:,:)
-  call mlw2d2nd(fx,fz,detot,ix,jx,dt,dx,dz)
-  call mlw2dsrc2nd(detot,r,ix,jx,dt,dx,dz)
+  CALL mlw2d2nd(fx,fz,detot,ix,jx,dt,dx,dz)
+  CALL mlw2dsrc2nd(detot,r,ix,jx,dt,dx,dz)
 
   fx(:,:) = 0.d0
   fz(:,:) = -eyn(:,:)
   r(:,:) = 0.d0
-  call mlw2d2nd(fx,fz,dbx,ix,jx,dt,dx,dz)
-  ! call mlw2dsrc2nd()
+  CALL mlw2d2nd(fx,fz,dbx,ix,jx,dt,dx,dz)
+  ! CALL mlw2dsrc2nd()
 
   fx(:,:) = -ezn(:,:)
   fz(:,:) = exn(:,:)
   r(:,:) = 0.d0
-  call mlw2d2nd(fx,fz,dby,ix,jx,dt,dx,dz)
-  ! call mlw2dsrc2nd()
+  CALL mlw2d2nd(fx,fz,dby,ix,jx,dt,dx,dz)
+  ! CALL mlw2dsrc2nd()
 
   fx(:,:) = eyn(:,:)
   fz(:,:) = 0.d0
   r(:,:) = - fx(:,:) / xm(:,:)
-  call mlw2d2nd(fx,fz,dbz,ix,jx,dt,dx,dz)
-  call mlw2dsrc2nd(dbz,r,ix,jx,dt,dx,dz)
+  CALL mlw2d2nd(fx,fz,dbz,ix,jx,dt,dx,dz)
+  CALL mlw2dsrc2nd(dbz,r,ix,jx,dt,dx,dz)
 
 
   !!!
-  call calc_p(ron,pn,vxn,vyn,vzn,bxn,byn,bzn,etotn,gm,ix,jx)
+  CALL calc_p(ron,pn,vxn,vyn,vzn,bxn,byn,bzn,etotn,gm,ix,jx)
   do j = 1,jx
   do i = 1,ix
     if(pn(i,j) < 0.d0) then
@@ -431,33 +431,33 @@ program main
     endif
   enddo
   enddo
-  call calc_etot(ron,pn,vxn,vyn,vzn,bxn,byn,bzn,etotn,gm,ix,jx)
+  CALL calc_etot(ron,pn,vxn,vyn,vzn,bxn,byn,bzn,etotn,gm,ix,jx)
   !!!
 
 
   !========================================
-  !!  artificial viscosity
+  !!  Artificial Viscosity
   !========================================
 
   qv = 10.d0
   if(ns == 0) then
-    call put_param_dble("qv:",qv)
+    CALL put_param_dble("qv:",qv)
   endif
 
-  ! calculate artificial viscosity coefficients (kx,kz)
-  call calc_coef_k(qv,kx,kz,vx,vz,ix,jx,dx,dz)
+  ! Calculate Artificial Viscosity coefficients (kx,kz)
+  CALL calc_coef_k(qv,kx,kz,vx,vz,ix,jx,dx,dz)
 
-  call arvis2d(kx,kz,ro,dro,ix,jx,dt,dx,dz)
-  call arvis2d(kx,kz,rvx,drvx,ix,jx,dt,dx,dz)
-  call arvis2d(kx,kz,rvy,drvy,ix,jx,dt,dx,dz)
-  call arvis2d(kx,kz,rvz,drvz,ix,jx,dt,dx,dz)
-  call arvis2d(kx,kz,etot,detot,ix,jx,dt,dx,dz)
-  call arvis2d(kx,kz,bx,dbx,ix,jx,dt,dx,dz)
-  call arvis2d(kx,kz,by,dby,ix,jx,dt,dx,dz)
-  call arvis2d(kx,kz,bz,dbz,ix,jx,dt,dx,dz)
+  CALL arvis2d(kx,kz,ro,dro,ix,jx,dt,dx,dz)
+  CALL arvis2d(kx,kz,rvx,drvx,ix,jx,dt,dx,dz)
+  CALL arvis2d(kx,kz,rvy,drvy,ix,jx,dt,dx,dz)
+  CALL arvis2d(kx,kz,rvz,drvz,ix,jx,dt,dx,dz)
+  CALL arvis2d(kx,kz,etot,detot,ix,jx,dt,dx,dz)
+  CALL arvis2d(kx,kz,bx,dbx,ix,jx,dt,dx,dz)
+  CALL arvis2d(kx,kz,by,dby,ix,jx,dt,dx,dz)
+  CALL arvis2d(kx,kz,bz,dbz,ix,jx,dt,dx,dz)
 
   !========================================
-  !! update values
+  !! Update values
   !========================================
   ro(:,:) = ro(:,:) + dro(:,:)
   rvx(:,:) = rvx(:,:) + drvx(:,:)
@@ -473,58 +473,58 @@ program main
 
 
   !========================================
-  !! apply boundary conditions
+  !! Apply boundary conditions
   !========================================
   !0220
-  call bc(ro,0,0,margin,ix,jx)
-  call bc(ro,1,2,margin,ix,jx)
-  call bc(ro,2,2,margin,ix,jx)
-  call bc(ro,3,0,margin,ix,jx)
+  CALL bc(ro,0,0,margin,ix,jx)
+  CALL bc(ro,1,2,margin,ix,jx)
+  CALL bc(ro,2,2,margin,ix,jx)
+  CALL bc(ro,3,0,margin,ix,jx)
 
   !0221
-  call bc(vx,0,0,margin,ix,jx)
-  call bc(vx,1,2,margin,ix,jx)
-  call bc(vx,2,2,margin,ix,jx)
-  call bc(vx,3,1,margin,ix,jx)
+  CALL bc(vx,0,0,margin,ix,jx)
+  CALL bc(vx,1,2,margin,ix,jx)
+  CALL bc(vx,2,2,margin,ix,jx)
+  CALL bc(vx,3,1,margin,ix,jx)
 
   !0221
-  call bc(vy,0,0,margin,ix,jx)
-  call bc(vy,1,2,margin,ix,jx)
-  call bc(vy,2,2,margin,ix,jx)
-  call bc(vy,3,1,margin,ix,jx)
+  CALL bc(vy,0,0,margin,ix,jx)
+  CALL bc(vy,1,2,margin,ix,jx)
+  CALL bc(vy,2,2,margin,ix,jx)
+  CALL bc(vy,3,1,margin,ix,jx)
 
   !1220
-  call bc(vz,0,1,margin,ix,jx)
-  call bc(vz,1,2,margin,ix,jx)
-  call bc(vz,2,2,margin,ix,jx)
-  call bc(vz,3,0,margin,ix,jx)
+  CALL bc(vz,0,1,margin,ix,jx)
+  CALL bc(vz,1,2,margin,ix,jx)
+  CALL bc(vz,2,2,margin,ix,jx)
+  CALL bc(vz,3,0,margin,ix,jx)
 
   !1221
-  call bc(bx,0,1,margin,ix,jx)
-  call bc(bx,1,2,margin,ix,jx)
-  call bc(bx,2,2,margin,ix,jx)
-  call bc(bx,3,1,margin,ix,jx)
+  CALL bc(bx,0,1,margin,ix,jx)
+  CALL bc(bx,1,2,margin,ix,jx)
+  CALL bc(bx,2,2,margin,ix,jx)
+  CALL bc(bx,3,1,margin,ix,jx)
 
   !1221
-  call bc(by,0,1,margin,ix,jx)
-  call bc(by,1,2,margin,ix,jx)
-  call bc(by,2,2,margin,ix,jx)
-  call bc(by,3,1,margin,ix,jx)
+  CALL bc(by,0,1,margin,ix,jx)
+  CALL bc(by,1,2,margin,ix,jx)
+  CALL bc(by,2,2,margin,ix,jx)
+  CALL bc(by,3,1,margin,ix,jx)
 
   !0220
-  call bc(bz,0,0,margin,ix,jx)
-  call bc(bz,1,2,margin,ix,jx)
-  call bc(bz,2,2,margin,ix,jx)
-  call bc(bz,3,0,margin,ix,jx)
+  CALL bc(bz,0,0,margin,ix,jx)
+  CALL bc(bz,1,2,margin,ix,jx)
+  CALL bc(bz,2,2,margin,ix,jx)
+  CALL bc(bz,3,0,margin,ix,jx)
 
   !0220
-  call bc(etot,0,0,margin,ix,jx)
-  call bc(etot,1,2,margin,ix,jx)
-  call bc(etot,2,2,margin,ix,jx)
-  call bc(etot,3,0,margin,ix,jx)
+  CALL bc(etot,0,0,margin,ix,jx)
+  CALL bc(etot,1,2,margin,ix,jx)
+  CALL bc(etot,2,2,margin,ix,jx)
+  CALL bc(etot,3,0,margin,ix,jx)
 
-  call calc_p(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
-  call calc_e(bx,by,bz,vx,vy,vz,ex,ey,ez)
+  CALL calc_p(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
+  CALL calc_e(bx,by,bz,vx,vy,vz,ex,ey,ez)
   
   ay(:,:) = ay(:,:) - ey(:,:) * dt
 
@@ -542,7 +542,7 @@ program main
    endif
  enddo
  enddo
-  call calc_etot(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
+  CALL calc_etot(ro,p,vx,vy,vz,bx,by,bz,etot,gm,ix,jx)
   !!!!!
 
 
@@ -550,24 +550,24 @@ program main
   t = t+dt
 
   !write(*,*) 'ns:',ns
-   !call write_0d_dble("dt.dat",dt)
+   !CALL write_0d_dble("dt.dat",dt)
 
   if (t >= tout) then
   !if(ns > 2) then
   !  stop 1000
   !endif
   !if(ns <= 2) then
-    call write_0d_dble("t.dat",t)
-    call write_2d_dble("ro.dat",ro)
-    call write_2d_dble("vx.dat",vx)
-    call write_2d_dble("vy.dat",vy)
-    call write_2d_dble("vz.dat",vz)
-    call write_2d_dble("bx.dat",bx)
-    call write_2d_dble("by.dat",by)
-    call write_2d_dble("bz.dat",bz)
-    call write_2d_dble("p.dat",p)
-    call write_2d_dble('etot.dat',etot)
-    call write_2d_dble("ay.dat",ay)
+    CALL write_0d_dble("t.dat",t)
+    CALL write_2d_dble("ro.dat",ro)
+    CALL write_2d_dble("vx.dat",vx)
+    CALL write_2d_dble("vy.dat",vy)
+    CALL write_2d_dble("vz.dat",vz)
+    CALL write_2d_dble("bx.dat",bx)
+    CALL write_2d_dble("by.dat",by)
+    CALL write_2d_dble("bz.dat",bz)
+    CALL write_2d_dble("p.dat",p)
+    CALL write_2d_dble('etot.dat',etot)
+    CALL write_2d_dble("ay.dat",ay)
 
 
     write(*,foutmsg) ns,t,nd
@@ -581,6 +581,6 @@ program main
   end do main_loop
 
   write(*,fstopmsg) ns,t
-  write(*,*) 'normal termination'
+  write(*,*) 'Normal Termination'
 
-end program main
+END PROGRAM main

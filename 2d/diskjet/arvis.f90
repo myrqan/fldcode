@@ -16,7 +16,7 @@ module arvis
       enddo
     end subroutine calc_coef_k
 
-    subroutine arvis2d(kx,kz,u,du,ix,jx,dt,dx,dz)
+   subroutine arvis2d(kx,kz,u,du,ix,jx,dt,dx,dz)
       integer,intent(in) :: ix,jx
       double precision,intent(in) :: kx(ix,jx),kz(ix,jx),u(ix,jx),dt,dx,dz
       double precision,intent(inout) :: du(ix,jx)

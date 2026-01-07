@@ -20,9 +20,9 @@ contains
       call put_param_real("cfl safety:",safety)
     end if
 
-    min_val=1.d30
-    do jj = mg+1,liz-mg
-    do ii = mg+1,lix-mg
+    min_val=1.d20
+    do jj = mg,liz-mg
+    do ii = mg,lix-mg
       v2 = vx(ii,jj)**2+vy(ii,jj)**2+vz(ii,jj)**2
       va2 = (bx(ii,jj)**2+by(ii,jj)**2+bz(ii,jj)**2)/ro(ii,jj)
       cs2 = gm*pr(ii,jj)/ro(ii,jj)
