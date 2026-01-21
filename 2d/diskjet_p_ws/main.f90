@@ -36,8 +36,8 @@ program main
 
   ! numerical variables (parameters)
   integer,parameter:: mg=4
-  integer,parameter:: gx=500
-  integer,parameter:: gz=500
+  integer,parameter:: gx=200
+  integer,parameter:: gz=300
     ! grid # for one mpi cells
   integer,parameter:: lix=2*mg+gx/mpx
   integer,parameter:: liz=2*mg+gz/mpz
@@ -84,6 +84,9 @@ program main
 
   ! for file output
   character(80):: dir
+
+  ! mpi timer
+  real(8):: t_start,t_end,calc_time, max_calc_time
 
   !--------------------------------------------------
   ! setup for mpi (message passing interface)
@@ -170,40 +173,45 @@ program main
   !--------------------------------------------------
   ! output (todo module (subroutine)) 1st time
   !--------------------------------------------------
-  write(dir,'(A,i3.3,"_")') 'dat/', nd
-  if(my_rank==0) then
-    call put_time_data('dat/t.dat',t)
-  end if
-  call put_2d_data_each_rank(&
-    trim(dir)//'ro',lix,liz,mg,ro)
-  call put_2d_data_each_rank(&
-    trim(dir)//'vx',lix,liz,mg,vx)
-  call put_2d_data_each_rank(&
-    trim(dir)//'vy',lix,liz,mg,vy)
-  call put_2d_data_each_rank(&
-    trim(dir)//'vz',lix,liz,mg,vz)
-  call put_2d_data_each_rank(&
-    trim(dir)//'bx',lix,liz,mg,bx)
-  call put_2d_data_each_rank(&
-    trim(dir)//'by',lix,liz,mg,by)
-  call put_2d_data_each_rank(&
-    trim(dir)//'bz',lix,liz,mg,bz)
-  call put_2d_data_each_rank(&
-    trim(dir)//'pr',lix,liz,mg,pr)
-  call put_2d_data_each_rank(&
-    trim(dir)//'ay',lix,liz,mg,ay)
-  if(my_rank==0) then
-    write(*,foutmsg) ns,t,nd
-  end if
+  !write(dir,'(A,i3.3,"_")') 'dat/', nd
+  !if(my_rank==0) then
+  !  call put_time_data('dat/t.dat',t)
+  !end if
+  !call put_2d_data_each_rank(&
+  !  trim(dir)//'ro',lix,liz,mg,ro)
+  !call put_2d_data_each_rank(&
+  !  trim(dir)//'vx',lix,liz,mg,vx)
+  !call put_2d_data_each_rank(&
+  !  trim(dir)//'vy',lix,liz,mg,vy)
+  !call put_2d_data_each_rank(&
+  !  trim(dir)//'vz',lix,liz,mg,vz)
+  !call put_2d_data_each_rank(&
+  !  trim(dir)//'bx',lix,liz,mg,bx)
+  !call put_2d_data_each_rank(&
+  !  trim(dir)//'by',lix,liz,mg,by)
+  !call put_2d_data_each_rank(&
+  !  trim(dir)//'bz',lix,liz,mg,bz)
+  !call put_2d_data_each_rank(&
+  !  trim(dir)//'pr',lix,liz,mg,pr)
+  !call put_2d_data_each_rank(&
+  !  trim(dir)//'ay',lix,liz,mg,ay)
+  !if(my_rank==0) then
+  !  write(*,foutmsg) ns,t,nd
+  !end if
   nd=nd+1
   tout = tout+dtout
 
+  !--------------------------------------------------
+  ! mpi timer
+  !--------------------------------------------------
+  call MPI_BARRIER(MPI_Comm_World,ierr)
+  t_start = MPI_WTIME()
   !--------------------------------------------------
   ! main loop (time integration)
   ! solve with modified two-step Lax-Wendroff scheme
   !--------------------------------------------------
   main_loop:&
-    do while(t<tend)
+    do while(ns<300)
   !--------------------------------------------------
   ! determine time interval using CFL cond.
   !--------------------------------------------------
@@ -547,51 +555,51 @@ program main
   !--------------------------------------------------
   ! output
   !--------------------------------------------------
-  if(t > tout) then
-  !if(mod(ns,10)==0) then
-    write(dir,'(A,i3.3,"_")') 'dat/', nd
-    if(my_rank==0) then
-      call put_time_data('dat/t.dat',t)
-    end if
-    call put_2d_data_each_rank(&
-      trim(dir)//'ro',lix,liz,mg,ro)
-    call put_2d_data_each_rank(&
-      trim(dir)//'vx',lix,liz,mg,vx)
-    call put_2d_data_each_rank(&
-      trim(dir)//'vy',lix,liz,mg,vy)
-    call put_2d_data_each_rank(&
-      trim(dir)//'vz',lix,liz,mg,vz)
-    call put_2d_data_each_rank(&
-      trim(dir)//'bx',lix,liz,mg,bx)
-    call put_2d_data_each_rank(&
-      trim(dir)//'by',lix,liz,mg,by)
-    call put_2d_data_each_rank(&
-      trim(dir)//'bz',lix,liz,mg,bz)
-    call put_2d_data_each_rank(&
-      trim(dir)//'pr',lix,liz,mg,pr)
-    call put_2d_data_each_rank(&
-      trim(dir)//'ay',lix,liz,mg,ay)
-    if(my_rank==0) then
-      write(*,foutmsg) ns,t,nd
-    end if
-    nd=nd+1
-    tout = tout+dtout
-  end if
-
-  ! terminal output
-  if(mod(ns,100)==0) then
-  !if(mod(ns,1)==0) then
-    if(my_rank==0) then
-      write(*,*) 'step:', ns, t
-    end if
-  end if
+  !if(t > tout) then
+  !!if(mod(ns,10)==0) then
+  !  write(dir,'(A,i3.3,"_")') 'dat/', nd
+  !  if(my_rank==0) then
+  !    call put_time_data('dat/t.dat',t)
+  !  end if
+  !  call put_2d_data_each_rank(&
+  !    trim(dir)//'ro',lix,liz,mg,ro)
+  !  call put_2d_data_each_rank(&
+  !    trim(dir)//'vx',lix,liz,mg,vx)
+  !  call put_2d_data_each_rank(&
+  !    trim(dir)//'vy',lix,liz,mg,vy)
+  !  call put_2d_data_each_rank(&
+  !    trim(dir)//'vz',lix,liz,mg,vz)
+  !  call put_2d_data_each_rank(&
+  !    trim(dir)//'bx',lix,liz,mg,bx)
+  !  call put_2d_data_each_rank(&
+  !    trim(dir)//'by',lix,liz,mg,by)
+  !  call put_2d_data_each_rank(&
+  !    trim(dir)//'bz',lix,liz,mg,bz)
+  !  call put_2d_data_each_rank(&
+  !    trim(dir)//'pr',lix,liz,mg,pr)
+  !  call put_2d_data_each_rank(&
+  !    trim(dir)//'ay',lix,liz,mg,ay)
+  !  if(my_rank==0) then
+  !    write(*,foutmsg) ns,t,nd
+  !  end if
+  !  nd=nd+1
+  !  tout = tout+dtout
+  !end if
+  !
+  !! terminal output
+  !if(mod(ns,100)==0) then
+  !!if(mod(ns,1)==0) then
+  !  if(my_rank==0) then
+  !    write(*,*) 'step:', ns, t
+  !  end if
+  !end if
   
   !--------------------------------------------------
   ! for debug
   !--------------------------------------------------
-  !if(nd>=10) then 
-    !call MPI_FINALIZE(ierr)
-    !stop
+  !if(ns>=100) then 
+  !  call MPI_FINALIZE(ierr)
+  !  stop
   !end if
   !--------------------------------------------------
   !--------------------------------------------------
@@ -604,11 +612,24 @@ program main
   !--------------------------------------------------
 
   end do main_loop
+  
+  !--------------------------------------------------
+  ! MPI timer
+  !--------------------------------------------------
+  t_end = MPI_WTIME()
+  calc_time = t_end-t_start
 
-  if(my_rank==0) then
-    write(*,fstpmsg) ns,t
-    write(*,*) 'Normal Termination'
+  call MPI_REDUCE(calc_time,max_calc_time,1,MPI_Double_Precision,&
+    MPI_MAX,0,MPI_Comm_World,ierr)
+
+  if(my_rank == 0) then
+    print *, "Calculation time (sec):", max_calc_time
   end if
+
+  !if(my_rank==0) then
+  !  write(*,fstpmsg) ns,t
+  !  write(*,*) 'Normal Termination'
+  !end if
 
 
   !--------------------------------------------------
